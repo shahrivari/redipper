@@ -1,6 +1,8 @@
 package com.github.shahrivari.redipper.base.map
 
 import com.github.shahrivari.redipper.base.RedisCache
+import com.github.shahrivari.redipper.base.encoding.CombinedEncoder
+import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.GeneralSerializer
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
@@ -13,8 +15,9 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
     protected constructor(config: RedisConfig,
                           loader: ((String) -> V?)?,
                           space: String, ttlSeconds: Long,
-                          serializer: Serializer<V>)
-            : super(config, space, ttlSeconds, serializer) {
+                          serializer: Serializer<V>,
+                          encoder: Encoder?)
+            : super(config, space, ttlSeconds, serializer, encoder) {
         this.loader = loader
     }
 
@@ -87,6 +90,7 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
         private var ttlSeconds: Long = 0L
         private var loader: ((String) -> V?)? = null
         private var serializer: Serializer<V> = GeneralSerializer(clazz)
+        private var encoder: Encoder? = null
 
         fun withTtl(duration: Long, unit: TimeUnit): Builder<V> {
             require(unit.toSeconds(duration) > 0) { "ttl must be greater than 0!" }
@@ -104,9 +108,14 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
             return this
         }
 
+        fun withEncoder(vararg encoder: Encoder): Builder<V> {
+            this.encoder = CombinedEncoder.of(*encoder)
+            return this
+        }
+
         fun build(): RedisMap<V> {
             require(!space.contains(":")) { "space cannot have semicolon: $space" }
-            return RedisMap(config, loader, space, ttlSeconds, serializer)
+            return RedisMap(config, loader, space, ttlSeconds, serializer, encoder)
         }
     }
 }
