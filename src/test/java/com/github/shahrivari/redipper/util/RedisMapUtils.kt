@@ -1,5 +1,6 @@
 package com.github.shahrivari.redipper.util
 
+import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.map.RedisMap
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
@@ -9,15 +10,27 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
                                              clazz: Class<V>,
                                              duration: Long = 1,
                                              unit: TimeUnit = TimeUnit.MINUTES,
-                                             l: ((String) -> V?)? = null): RedisMap<V> {
-        return if (l == null)
+                                             l: ((String) -> V?)? = null,
+                                             encoder: Encoder? = null): RedisMap<V> {
+        return if (l == null && encoder == null)
             RedisMap.Builder(RedisTest.redisConfig, space, clazz)
                     .withTtl(duration, unit)
+                    .build()
+        else if (l != null && encoder == null)
+            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
+                    .withTtl(duration, unit)
+                    .withLoader(l)
+                    .build()
+        else if (l == null && encoder != null)
+            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
+                    .withTtl(duration, unit)
+                    .withEncoder(encoder)
                     .build()
         else
             RedisMap.Builder(RedisTest.redisConfig, space, clazz)
                     .withTtl(duration, unit)
-                    .withLoader(l)
+                    .withLoader(l!!)
+                    .withEncoder(encoder!!)
                     .build()
     }
 
