@@ -47,17 +47,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.shahrivari</groupId>
-            <artifactId>tlobjects</artifactId>
-            <version>v1.15</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-
 
         <!-- Test -->
         <dependency>

@@ -1,5 +1,6 @@
 package com.github.shahrivari.redipper.util
 
+import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.list.RedisList
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
@@ -9,9 +10,11 @@ interface RedisListUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> buildRedisListTest(space: String,
                                               clazz: Class<V>,
                                               duration: Long = 1,
-                                              unit: TimeUnit = TimeUnit.MINUTES): RedisList<V> {
+                                              unit: TimeUnit = TimeUnit.MINUTES,
+                                              vararg encoder: Encoder): RedisList<V> {
         return RedisList.Builder(RedisTest.redisConfig, space, clazz)
                 .withTtl(duration, unit)
+                .withEncoder(*encoder)
                 .build()
     }
 
