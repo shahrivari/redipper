@@ -10,28 +10,17 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
                                              clazz: Class<V>,
                                              duration: Long = 1,
                                              unit: TimeUnit = TimeUnit.MINUTES,
-                                             l: ((String) -> V?)? = null,
-                                             encoder: Encoder? = null): RedisMap<V> {
-        return if (l == null && encoder == null)
-            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
-                    .withTtl(duration, unit)
-                    .build()
-        else if (l != null && encoder == null)
-            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
-                    .withTtl(duration, unit)
-                    .withLoader(l)
-                    .build()
-        else if (l == null && encoder != null)
-            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
-                    .withTtl(duration, unit)
-                    .withEncoder(encoder)
-                    .build()
-        else
-            RedisMap.Builder(RedisTest.redisConfig, space, clazz)
-                    .withTtl(duration, unit)
-                    .withLoader(l!!)
-                    .withEncoder(encoder!!)
-                    .build()
+                                             loader: ((String) -> V?)? = null,
+                                             vararg encoder: Encoder): RedisMap<V> {
+        val builder =
+                RedisMap.Builder(RedisTest.redisConfig, space, clazz)
+                        .withTtl(duration, unit)
+                        .withEncoder(*encoder)
+
+        if (loader != null)
+            builder.withLoader(loader)
+
+        return builder.build()
     }
 
     fun <V : Serializable> setTest(redisCache: RedisMap<V>, key: String, value: V?) {

@@ -1,13 +1,10 @@
 package com.github.shahrivari.redipper.base.serialize
 
-import io.objects.tl.api.TLApiContext
-import io.objects.tl.core.TLObject
 import mu.KotlinLogging
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
-import kotlin.reflect.full.isSubclassOf
 
 class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
 
@@ -18,7 +15,7 @@ class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
     }
 
     private fun hasDefaultConstructorAndSerialVersionUID(clazz: Class<*>): Boolean {
-        if (clazz.isPrimitive || clazz.kotlin.isSubclassOf(TLObject::class)) {
+        if (clazz.isPrimitive) {
             return true
         }
 
@@ -42,7 +39,6 @@ class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
     companion object {
         private val logger = KotlinLogging.logger {}
 
-        private const val TL_SERIALIZE_HEADER: Byte = 1
         private const val JAVA_SERIALIZE_HEADER: Byte = 2
         private const val KRYO_SERIALIZE_HEADER: Byte = 3
 
@@ -67,10 +63,6 @@ class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
     override fun serialize(value: V): ByteArray {
         val clazz = value::class.java
 
-        if (value is TLObject) {
-            return value.serialize().prepend(TL_SERIALIZE_HEADER)
-        }
-
         if (nonKryoTypes.contains(clazz.canonicalName)) {
             return value.javaSerialize().prepend(JAVA_SERIALIZE_HEADER)
         }
@@ -90,8 +82,6 @@ class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
         return try {
             val objectStream = ByteArrayInputStream(bytes, 1, bytes.size - 1)
             when (bytes.first()) {
-                TL_SERIALIZE_HEADER -> TLApiContext.getInstance().deserializeMessage(objectStream) as V
-
                 KRYO_SERIALIZE_HEADER -> kryo.deserialize(objectStream)
 
                 JAVA_SERIALIZE_HEADER -> ObjectInputStream(objectStream).readObject() as V

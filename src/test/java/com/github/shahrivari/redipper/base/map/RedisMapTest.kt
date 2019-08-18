@@ -4,13 +4,11 @@ import com.github.shahrivari.redipper.base.encoding.encryption.AesEncoder
 import com.github.shahrivari.redipper.util.RedisCacheUtils
 import com.github.shahrivari.redipper.util.RedisMapUtils
 import com.github.shahrivari.redipper.util.RedisTest
-import io.objects.tl.api.TLUser
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import kotlin.random.Random
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -93,7 +91,7 @@ internal class RedisMapTest : RedisMapUtils {
     internal fun `test loader for person`() {
         val result = createPerson()
         val userCache =
-                buildRedisMapTest("person", RedisCacheUtils.Person::class.java, l = { result })
+                buildRedisMapTest("person", RedisCacheUtils.Person::class.java, loader = { result })
 
         val user = createPerson()
         val test = getTest(userCache, user.id.toString())
@@ -105,19 +103,12 @@ internal class RedisMapTest : RedisMapUtils {
     }
 
     @Test
-    internal fun `test loader for tl`() {
-        val userCache = buildRedisMapTest("user", TLUser::class.java)
-        val test = getTest(userCache, randomPhone)
-        assertNull(test)
-    }
-
-    @Test
     internal fun `should be able set and get with encryption`() {
         val result = createPerson()
         val plainString = randomString(17)
         val aes128 = AesEncoder(plainString)
         val userCache =
-                buildRedisMapTest("person", RedisCacheUtils.Person::class.java, l = { result }, encoder = aes128)
+                buildRedisMapTest("person", RedisCacheUtils.Person::class.java, loader = { result }, encoder = *arrayOf(aes128))
 
         val user = createPerson()
         val test = getTest(userCache, user.id.toString())

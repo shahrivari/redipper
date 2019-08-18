@@ -1,5 +1,6 @@
 package com.github.shahrivari.redipper.util
 
+import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.table.RedisTable
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
@@ -8,9 +9,11 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> buildRedisTableTest(space: String,
                                                clazz: Class<V>,
                                                duration: Long = 1,
-                                               unit: TimeUnit = TimeUnit.MINUTES): RedisTable<V> {
+                                               unit: TimeUnit = TimeUnit.MINUTES,
+                                               vararg encoder: Encoder): RedisTable<V> {
         return RedisTable.Builder(RedisTest.redisConfig, space, clazz)
                 .withTtl(duration, unit)
+                .withEncoder(*encoder)
                 .build()
     }
 
