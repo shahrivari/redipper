@@ -7,17 +7,6 @@ import java.util.concurrent.TimeUnit
 
 interface RedisListUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> buildRedisListTest(space: String,
-                                              clazz: Class<V>,
-                                              duration: Long = 1,
-                                              unit: TimeUnit = TimeUnit.MINUTES,
-                                              vararg encoder: Encoder): RedisList<V> {
-        return RedisList.Builder(RedisTest.redisConfig, space, clazz)
-                .withTtl(duration, unit)
-                .withEncoder(*encoder)
-                .build()
-    }
-
     fun <V : Serializable> lpushTest(redisCache: RedisList<V>, key: String, value: V) {
         return redisCache.lpush(key, value)
     }
@@ -37,4 +26,15 @@ interface RedisListUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> getAllTest(redisCache: RedisList<V>, key: String): List<V?> {
         return redisCache.getAll(key)
     }
+}
+
+inline fun <reified V : Serializable> buildRedisListTest(space: String,
+                                                         forceSpace: Boolean = false,
+                                                         duration: Long = 1,
+                                                         unit: TimeUnit = TimeUnit.MINUTES,
+                                                         vararg encoder: Encoder): RedisList<V> {
+    return RedisList.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
+            .withTtl(duration, unit)
+            .withEncoder(*encoder)
+            .build()
 }

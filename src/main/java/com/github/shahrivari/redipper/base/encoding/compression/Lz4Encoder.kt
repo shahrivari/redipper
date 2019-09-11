@@ -9,11 +9,10 @@ import java.io.ByteArrayOutputStream
 class Lz4Encoder : Encoder {
     override fun encode(bytes: ByteArray): ByteArray {
         val baos = ByteArrayOutputStream(bytes.size)
-        LZ4FrameOutputStream(baos).use {
-            it.write(bytes) }
+        LZ4FrameOutputStream(baos).use { it.write(bytes) }
         return baos.toByteArray()
     }
 
-    override fun decode(bytes: ByteArray): ByteArray =
+    override fun decode(bytes: ByteArray) =
             LZ4FrameInputStream(ByteArrayInputStream(bytes)).readBytes()
 }

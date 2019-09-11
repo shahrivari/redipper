@@ -1,13 +1,11 @@
 package com.github.shahrivari.redipper.base.map
 
+import com.github.shahrivari.redipper.base.LoadingBuilder
 import com.github.shahrivari.redipper.base.RedisCache
-import com.github.shahrivari.redipper.base.encoding.CombinedEncoder
 import com.github.shahrivari.redipper.base.encoding.Encoder
-import com.github.shahrivari.redipper.base.serialize.GeneralSerializer
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import java.io.Serializable
-import java.util.concurrent.TimeUnit
 
 open class RedisMap<V : Serializable> : RedisCache<V> {
     private val loader: ((String) -> V?)?
@@ -23,6 +21,12 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
 
     companion object {
         private val EMPTY_BYTES = ByteArray(0)
+
+        inline fun <reified T : Serializable> newBuilder(config: RedisConfig,
+                                                         space: String,
+                                                         forceSpace: Boolean = false): Builder<T> {
+            return Builder(config, space, forceSpace, T::class.java)
+        }
     }
 
     private fun ByteArray.getKeyPart(): String {
@@ -79,43 +83,44 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
         return map
     }
 
-    fun del(key: String) = redis.del(key.prependSpace())
+    fun del(key: String): Long =
+            redis.del(key.prependSpace())
 
-    fun removeTtl(key: String) = redis.set(key.prependSpace(), redis.get(key.prependSpace()))
+    fun removeTtl(key: String) =
+            redis.set(key.prependSpace(), redis.get(key.prependSpace()))
 
 
-    class Builder<V : Serializable>(private val config: RedisConfig,
-                                    private val space: String,
-                                    clazz: Class<V>) {
-        private var ttlSeconds: Long = 0L
-        private var loader: ((String) -> V?)? = null
-        private var serializer: Serializer<V> = GeneralSerializer(clazz)
-        private var encoder: Encoder? = null
+    class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :
+            LoadingBuilder<RedisMap<V>, V>(config, space, clazz) {
 
-        fun withTtl(duration: Long, unit: TimeUnit): Builder<V> {
-            require(unit.toSeconds(duration) > 0) { "ttl must be greater than 0!" }
-            ttlSeconds = unit.toSeconds(duration)
-            return this
+        init {
+            if (!forceSpace) checkSpaceExistence(space)
         }
 
-        fun withLoader(loader: (String) -> V?): Builder<V> {
-            this.loader = loader
-            return this
-        }
-
-        fun withSerializer(serializer: Serializer<V>): Builder<V> {
-            this.serializer = serializer
-            return this
-        }
-
-        fun withEncoder(vararg encoder: Encoder): Builder<V> {
-            this.encoder = CombinedEncoder.of(*encoder)
-            return this
-        }
-
-        fun build(): RedisMap<V> {
+        override fun build(): RedisMap<V> {
             require(!space.contains(":")) { "space cannot have semicolon: $space" }
-            return RedisMap(config, loader, space, ttlSeconds, serializer, encoder)
+            if (serializer == null)
+                specifySerializer()
+
+            return RedisMap(config, loader, space, ttlSeconds, serializer!!, encoder)
         }
     }
 }
+
+fun RedisMap<Short>.incr(key: String) =
+        redis.incr(key.prependSpace()).toShort()
+
+fun RedisMap<Short>.decr(key: String) =
+        redis.decr(key.prependSpace()).toShort()
+
+fun RedisMap<Int>.incr(key: String) =
+        redis.incr(key.prependSpace()).toInt()
+
+fun RedisMap<Int>.decr(key: String) =
+        redis.decr(key.prependSpace()).toInt()
+
+fun RedisMap<Long>.incr(key: String) =
+        redis.incr(key.prependSpace()).toLong()
+
+fun RedisMap<Long>.decr(key: String) =
+        redis.decr(key.prependSpace()).toLong()
