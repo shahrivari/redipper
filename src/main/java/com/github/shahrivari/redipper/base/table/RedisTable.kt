@@ -1,13 +1,11 @@
 package com.github.shahrivari.redipper.base.table
 
+import com.github.shahrivari.redipper.base.BaseBuilder
 import com.github.shahrivari.redipper.base.RedisCache
-import com.github.shahrivari.redipper.base.encoding.CombinedEncoder
 import com.github.shahrivari.redipper.base.encoding.Encoder
-import com.github.shahrivari.redipper.base.serialize.GeneralSerializer
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import java.io.Serializable
-import java.util.concurrent.TimeUnit
 
 open class RedisTable<V : Serializable> : RedisCache<V> {
 
@@ -17,6 +15,14 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
                           serializer: Serializer<V>,
                           encoder: Encoder?)
             : super(config, space, ttlSeconds, serializer, encoder)
+
+    companion object {
+        inline fun <reified T : Serializable> newBuilder(config: RedisConfig,
+                                                         space: String,
+                                                         forceSpace: Boolean = false): Builder<T> {
+            return Builder(config, space, forceSpace, T::class.java)
+        }
+    }
 
     fun hset(key: String, field: String, value: V) {
         redis.hset(key.prependSpace(), field.toByteArray(), serialize(value))
@@ -37,32 +43,21 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
     fun hlen(key: String) = redis.hlen(key.prependSpace())
 
 
-    class Builder<V : Serializable>(private val config: RedisConfig,
-                                    private val space: String,
-                                    clazz: Class<V>) {
-        private var ttlSeconds: Long = 0L
-        private var serializer: Serializer<V> = GeneralSerializer(clazz)
-        private var encoder: Encoder? = null
+    class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean = false, clazz: Class<V>) :
+            BaseBuilder<RedisTable<V>, V>(config, space, clazz) {
 
-        fun withTtl(duration: Long, unit: TimeUnit): Builder<V> {
-            require(unit.toSeconds(duration) > 0) { "ttl must be greater than 0!" }
-            ttlSeconds = unit.toSeconds(duration)
-            return this
+        init {
+            if (!forceSpace) checkSpaceExistence(space)
         }
 
-        fun withSerializer(serializer: Serializer<V>): Builder<V> {
-            this.serializer = serializer
-            return this
-        }
-
-        fun withEncoder(vararg encoder: Encoder): Builder<V> {
-            this.encoder = CombinedEncoder.of(*encoder)
-            return this
-        }
-
-        fun build(): RedisTable<V> {
+        override fun build(): RedisTable<V> {
             require(!space.contains(":")) { "space cannot have semicolon: $space" }
-            return RedisTable(config, space, ttlSeconds, serializer, encoder)
+            if (serializer == null)
+                specifySerializer()
+
+            return RedisTable(config, space, ttlSeconds, serializer!!, encoder)
         }
     }
 }
+
+fun <T : Number> RedisTable<T>.incr(key: String): Int = this.redis.incr(key.prependSpace()).toInt()

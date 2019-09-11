@@ -1,18 +1,17 @@
 package com.github.shahrivari.redipper.base.list
 
+import com.github.shahrivari.redipper.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import com.github.shahrivari.redipper.util.RedisCacheUtils
-import com.github.shahrivari.redipper.util.RedisListUtils
-import com.github.shahrivari.redipper.util.RedisTest
 
-@ExtendWith(RedisTest::class)
+@ExtendWith(RedisTest::class, RedisCacheTest::class)
 internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get correctly`() {
-        val redisList = buildRedisListTest("person", RedisCacheUtils.Person::class.java)
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
         val person = createPerson()
 
         lpushTest(redisList, person.id.toString(), person)
@@ -26,7 +25,7 @@ internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get all elements of list`() {
-        val redisList = buildRedisListTest("person", RedisCacheUtils.Person::class.java)
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
 
         val key = "testList"
         repeat((1..5).count()) {
@@ -43,7 +42,7 @@ internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get last element of list`() {
-        val redisList = buildRedisListTest("person", RedisCacheUtils.Person::class.java)
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
 
         val key = "testList"
         repeat((1..5).count()) {
@@ -60,5 +59,22 @@ internal class RedisListTest : RedisListUtils {
 
         rpopTest(redisList, key)
         assertThat(llenTest(redisList, key)).isEqualTo(4)
+    }
+
+    @Test
+    internal fun `duplicate space should not be correct`() {
+        val space = "testName"
+        buildRedisListTest<String>(space)
+
+        assertThrows<IllegalArgumentException> {
+            buildRedisListTest<String>(space)
+        }
+    }
+
+    @Test
+    internal fun `duplicate space with force parameter should be correct`() {
+        val space = "testName"
+        buildRedisListTest<String>(space)
+        buildRedisListTest<String>(space, true)
     }
 }

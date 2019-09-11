@@ -26,8 +26,8 @@ class KryoSerializer<V> {
         return kryoSerialize(value)
     }
 
-    fun deserialize(objectStream: ByteArrayInputStream): V? {
+    fun deserialize(objectStream: ByteArrayInputStream): V {
         val input = Input(objectStream)
-        return kryos.get().readClassAndObject(input) as V?
+        return kryos.get().readClassAndObject(input) as V
     }
 }

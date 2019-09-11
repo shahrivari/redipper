@@ -6,22 +6,6 @@ import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
 interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
-    fun <V : Serializable> buildRedisMapTest(space: String,
-                                             clazz: Class<V>,
-                                             duration: Long = 1,
-                                             unit: TimeUnit = TimeUnit.MINUTES,
-                                             loader: ((String) -> V?)? = null,
-                                             vararg encoder: Encoder): RedisMap<V> {
-        val builder =
-                RedisMap.Builder(RedisTest.redisConfig, space, clazz)
-                        .withTtl(duration, unit)
-                        .withEncoder(*encoder)
-
-        if (loader != null)
-            builder.withLoader(loader)
-
-        return builder.build()
-    }
 
     fun <V : Serializable> setTest(redisCache: RedisMap<V>, key: String, value: V?) {
         redisCache.set(key, value)
@@ -42,4 +26,21 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> mgetTest(redisCache: RedisMap<V>, keys: Iterable<String>): Map<String, V> {
         return redisCache.mget(keys)
     }
+}
+
+inline fun <reified V : Serializable> buildRedisMapTest(space: String,
+                                                                      forceSpace: Boolean = false,
+                                                                      duration: Long = 1,
+                                                                      unit: TimeUnit = TimeUnit.MINUTES,
+                                                                      noinline loader: ((String) -> V?)? = null,
+                                                                      vararg encoder: Encoder): RedisMap<V> {
+    val builder =
+            RedisMap.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
+                    .withTtl(duration, unit)
+                    .withEncoder(*encoder)
+
+    if (loader != null)
+        builder.withLoader(loader)
+
+    return builder.build()
 }
