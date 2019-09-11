@@ -15,7 +15,7 @@ class Aes128(key: ByteArray) {
         require(key.size == KEY_LEN) { "AES-128 key length must be 16 bytes but it is: ${key.size}" }
     }
 
-    companion object{
+    companion object {
         const val KEY_LEN = 16
     }
 

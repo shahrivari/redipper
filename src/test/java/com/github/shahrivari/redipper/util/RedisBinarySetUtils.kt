@@ -7,17 +7,6 @@ import java.util.concurrent.TimeUnit
 
 interface RedisBinarySetUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> buildRedisBinarySetTest(space: String,
-                                                   clazz: Class<V>,
-                                                   duration: Long = 1,
-                                                   unit: TimeUnit = TimeUnit.MINUTES,
-                                                   vararg encoder: Encoder): RedisBinarySet<V> {
-        return RedisBinarySet.Builder(RedisTest.redisConfig, space, clazz)
-                .withTtl(duration, unit)
-                .withEncoder(*encoder)
-                .build()
-    }
-
     fun <V : Serializable> saddTest(redisCache: RedisBinarySet<V>, key: String, value: V) {
         return redisCache.sadd(key, value)
     }
@@ -29,4 +18,15 @@ interface RedisBinarySetUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> smembersTest(redisCache: RedisBinarySet<V>, key: String): List<V> {
         return redisCache.smembers(key)
     }
+}
+
+inline fun <reified V : Serializable> buildRedisBinarySetTest(space: String,
+                                                              forceSpace: Boolean = false,
+                                                              duration: Long = 1,
+                                                              unit: TimeUnit = TimeUnit.MINUTES,
+                                                              vararg encoder: Encoder): RedisBinarySet<V> {
+    return RedisBinarySet.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
+            .withTtl(duration, unit)
+            .withEncoder(*encoder)
+            .build()
 }

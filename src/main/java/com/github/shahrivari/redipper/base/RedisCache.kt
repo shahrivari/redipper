@@ -16,7 +16,7 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
     protected val ttlSeconds: Long
     private val serializer: Serializer<V>
     private val encoder: Encoder?
-    protected lateinit var redis: RedisCacheAPI<ByteArray, ByteArray>
+    internal lateinit var redis: RedisCacheAPI<ByteArray, ByteArray>
     private val config: RedisConfig
 
     protected constructor(config: RedisConfig,
@@ -29,18 +29,25 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
         this.serializer = serializer
         this.config = config
         this.encoder = encoder
+        spaceGroup.add(space)
         createCacheRedisDao()
     }
 
     companion object {
-        val logger = KotlinLogging.logger {}
+        internal val logger = KotlinLogging.logger {}
+        private val spaceGroup = HashSet<String>()
+
+        internal fun checkSpaceExistence(space: String) {
+            require(!spaceGroup.contains(space))
+            { "This space exists:$space. forceSpace should be set true if you want set duplicate space" }
+        }
     }
 
     private fun createCacheRedisDao() {
-        if (config is RedisClusterConfig)
-            redis = RedisClusterDao.create("Cache", config)
+        redis = if (config is RedisClusterConfig)
+            RedisClusterDao.create("Cache", config)
         else
-            redis = RedisDao.create("Cache", config)
+            RedisDao.create("Cache", config)
 
         logger.info { "Redis $space cache created successfully." }
     }
@@ -61,7 +68,7 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
         return serializer.deserialize(result)
     }
 
-    protected fun String.prependSpace() = "$space:$this".toByteArray()
+    internal fun String.prependSpace() = "$space:$this".toByteArray()
 
     override fun close() = redis.close()
 }

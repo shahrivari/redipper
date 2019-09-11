@@ -1,38 +1,34 @@
 package com.github.shahrivari.redipper.base.set
 
-import org.assertj.core.api.Assertions
+import com.github.shahrivari.redipper.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import com.github.shahrivari.redipper.util.RedisBinarySetUtils
-import com.github.shahrivari.redipper.util.RedisCacheUtils
-import com.github.shahrivari.redipper.util.RedisTest
 import kotlin.test.assertNotNull
 
-@ExtendWith(RedisTest::class)
+@ExtendWith(RedisTest::class, RedisCacheTest::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to sadd and smembers kv (value is not tl)`() {
-        val userCache =
-                buildRedisBinarySetTest("person", RedisCacheUtils.Person::class.java)
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("person")
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
         val user = smembersTest(userCache, person.id.toString()).first()
 
         assertNotNull(user)
-        Assertions.assertThat(person.id).isEqualTo(user.id)
-        Assertions.assertThat(person.phone).isEqualTo(user.phone)
-        Assertions.assertThat(person.name).isEqualTo(user.name)
+        assertThat(person.id).isEqualTo(user.id)
+        assertThat(person.phone).isEqualTo(user.phone)
+        assertThat(person.name).isEqualTo(user.name)
     }
 
     @Test
     internal fun `should be able to srem kv (value as tl)`() {
-        val userCache =
-                buildRedisBinarySetTest("user", RedisCacheUtils.Person::class.java)
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("user")
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
@@ -50,8 +46,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to srem kv (value is not tl)`() {
-        val userCache =
-                buildRedisBinarySetTest("person", RedisCacheUtils.Person::class.java)
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("person")
         val userA = createPerson()
         val userB = createPerson()
 
@@ -74,5 +69,22 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
         assertThat(first.id).isEqualTo(userA.id)
         assertThat(first.phone).isEqualTo(userA.phone)
         assertThat(first.name).isEqualTo(userA.name)
+    }
+
+    @Test
+    internal fun `duplicate space should not be correct`() {
+        val space = "testName"
+        buildRedisBinarySetTest<String>(space)
+
+        assertThrows<IllegalArgumentException> {
+            buildRedisBinarySetTest<String>(space)
+        }
+    }
+
+    @Test
+    internal fun `duplicate space with force parameter should be correct`() {
+        val space = "testName"
+        buildRedisBinarySetTest<String>(space)
+        buildRedisBinarySetTest<String>(space, true)
     }
 }

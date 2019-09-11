@@ -6,16 +6,6 @@ import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
 interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
-    fun <V : Serializable> buildRedisTableTest(space: String,
-                                               clazz: Class<V>,
-                                               duration: Long = 1,
-                                               unit: TimeUnit = TimeUnit.MINUTES,
-                                               vararg encoder: Encoder): RedisTable<V> {
-        return RedisTable.Builder(RedisTest.redisConfig, space, clazz)
-                .withTtl(duration, unit)
-                .withEncoder(*encoder)
-                .build()
-    }
 
     fun <V : Serializable> hsetTest(redisCache: RedisTable<V>, key: String, field: String, value: V) {
         redisCache.hset(key, field, value)
@@ -36,4 +26,15 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> hgetAllTest(redisCache: RedisTable<V>, key: String, field: String): Map<String, V?> {
         return redisCache.hgetAll(key)
     }
+}
+
+inline fun <reified V : Serializable> buildRedisTableTest(space: String,
+                                                          forceSpace: Boolean = false,
+                                                          duration: Long = 1,
+                                                          unit: TimeUnit = TimeUnit.MINUTES,
+                                                          vararg encoder: Encoder): RedisTable<V> {
+    return RedisTable.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
+            .withTtl(duration, unit)
+            .withEncoder(*encoder)
+            .build()
 }
