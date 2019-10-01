@@ -5,13 +5,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.concurrent.TimeUnit
 
 @ExtendWith(RedisTest::class, RedisCacheTest::class)
 internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get correctly`() {
-        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
         lpushTest(redisList, person.id.toString(), person)
@@ -25,7 +26,7 @@ internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get all elements of list`() {
-        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>()
 
         val key = "testList"
         repeat((1..5).count()) {
@@ -42,7 +43,7 @@ internal class RedisListTest : RedisListUtils {
 
     @Test
     internal fun `set and get last element of list`() {
-        val redisList = buildRedisListTest<RedisCacheUtils.Person>("person")
+        val redisList = buildRedisListTest<RedisCacheUtils.Person>()
 
         val key = "testList"
         repeat((1..5).count()) {
@@ -76,5 +77,20 @@ internal class RedisListTest : RedisListUtils {
         val space = "testName"
         buildRedisListTest<String>(space)
         buildRedisListTest<String>(space, true)
+    }
+
+    @Test
+    internal fun `set value with ttl twice`() {
+        val mapTest = buildRedisListTest<String>(duration = 40, unit = TimeUnit.SECONDS)
+        val key = "key"
+
+        lpushTest(mapTest, key, "value1")
+        assertThat(mapTest.getTtl(key)).isEqualTo(40)
+
+        Thread.sleep(5000)
+        assertThat(mapTest.getTtl(key)).isEqualTo(35)
+
+        lpushTest(mapTest, key, "value2")
+        assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
 }

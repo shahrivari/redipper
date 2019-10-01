@@ -26,13 +26,14 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> hgetAllTest(redisCache: RedisTable<V>, key: String, field: String): Map<String, V?> {
         return redisCache.hgetAll(key)
     }
+
 }
 
-inline fun <reified V : Serializable> buildRedisTableTest(space: String,
-                                                          forceSpace: Boolean = false,
-                                                          duration: Long = 1,
-                                                          unit: TimeUnit = TimeUnit.MINUTES,
-                                                          vararg encoder: Encoder): RedisTable<V> {
+inline fun <reified V : Serializable> RedisTableUtils.buildRedisTableTest(space: String = randomName,
+                                                                          forceSpace: Boolean = false,
+                                                                          duration: Long = 1,
+                                                                          unit: TimeUnit = TimeUnit.MINUTES,
+                                                                          vararg encoder: Encoder): RedisTable<V> {
     return RedisTable.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
             .withTtl(duration, unit)
             .withEncoder(*encoder)
