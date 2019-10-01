@@ -42,6 +42,9 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
 
     fun hlen(key: String) = redis.hlen(key.prependSpace())
 
+    fun hkeys(key: String) =
+            redis.hkeys(key.prependSpace()).map { String(it) }
+
 
     class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean = false, clazz: Class<V>) :
             BaseBuilder<RedisTable<V>, V>(config, space, clazz) {
