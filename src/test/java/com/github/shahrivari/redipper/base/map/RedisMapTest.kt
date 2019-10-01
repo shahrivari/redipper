@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -18,7 +17,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `semicolon in key is correctly handled`() {
-        val userCache = buildRedisMapTest<String>()
+        val userCache = buildRedisMapTest<String>("user")
         val key = "kashk:askk"
         val value = "salam"
         userCache.set(key, value)
@@ -33,7 +32,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `should be able to set and get kv (value is not tl)`() {
-        val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisMapTest<RedisCacheUtils.Person>("person")
         val person = createPerson()
 
         setTest(userCache, person.id.toString(), person)
@@ -47,7 +46,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `should be able to set and get multiple kvs (value is not tl)`() {
-        val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisMapTest<RedisCacheUtils.Person>("person")
 
         val userList = mutableMapOf<String, RedisCacheUtils.Person>()
         repeat(10) {
@@ -67,7 +66,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `should be able to delete kv from cache (value is not tl)`() {
-        val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisMapTest<RedisCacheUtils.Person>("person")
         val person = createPerson()
 
         setTest(userCache, person.id.toString(), person)
@@ -79,7 +78,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `should get null if key not exist in cache (value si not tl)`() {
-        val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisMapTest<RedisCacheUtils.Person>("person")
         val user = createPerson()
 
         val test = getTest(userCache, user.id.toString())
@@ -89,7 +88,7 @@ internal class RedisMapTest : RedisMapUtils {
     @Test
     internal fun `test loader for person`() {
         val result = createPerson()
-        val userCache = buildRedisMapTest(loader = { result })
+        val userCache = buildRedisMapTest("person", loader = { result })
 
         val user = createPerson()
         val test = getTest(userCache, user.id.toString())
@@ -106,7 +105,7 @@ internal class RedisMapTest : RedisMapUtils {
         val plainString = randomString(17)
         val aes128 = AesEncoder(plainString)
         val userCache =
-                buildRedisMapTest(loader = { result }, encoder = *arrayOf(aes128))
+                buildRedisMapTest("person", loader = { result }, encoder = *arrayOf(aes128))
 
         val user = createPerson()
         val test = getTest(userCache, user.id.toString())
@@ -119,7 +118,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `shoud be able to inc and dec int cache`() {
-        val redisMap = buildRedisMapTest<Int>()
+        val redisMap = buildRedisMapTest<Int>("alaki")
         val key = "ali"
         redisMap.set(key, 5)
 
@@ -132,7 +131,7 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `shoud be able to inc and dec long cache`() {
-        val redisMap = buildRedisMapTest<Long>()
+        val redisMap = buildRedisMapTest<Long>("alaki")
         val key = "ali"
         redisMap.set(key, 5)
 
@@ -158,20 +157,5 @@ internal class RedisMapTest : RedisMapUtils {
         val space = "testName"
         buildRedisMapTest<String>(space)
         buildRedisMapTest<String>(space, true)
-    }
-
-    @Test
-    internal fun `set value with ttl twice`() {
-        val mapTest = buildRedisMapTest<String>(duration = 40, unit = TimeUnit.SECONDS)
-        val key = "key"
-
-        setTest(mapTest, key, "value1")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
-
-        Thread.sleep(5000)
-        assertThat(mapTest.getTtl(key)).isEqualTo(35)
-
-        setTest(mapTest, key, "value2")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
 }

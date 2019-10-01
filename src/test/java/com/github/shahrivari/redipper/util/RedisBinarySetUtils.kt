@@ -20,11 +20,11 @@ interface RedisBinarySetUtils : AppTestUtils, RedisCacheUtils {
     }
 }
 
-inline fun <reified V : Serializable> RedisBinarySetUtils.buildRedisBinarySetTest(space: String = randomName,
-                                                                                  forceSpace: Boolean = false,
-                                                                                  duration: Long = 1,
-                                                                                  unit: TimeUnit = TimeUnit.MINUTES,
-                                                                                  vararg encoder: Encoder): RedisBinarySet<V> {
+inline fun <reified V : Serializable> buildRedisBinarySetTest(space: String,
+                                                              forceSpace: Boolean = false,
+                                                              duration: Long = 1,
+                                                              unit: TimeUnit = TimeUnit.MINUTES,
+                                                              vararg encoder: Encoder): RedisBinarySet<V> {
     return RedisBinarySet.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
             .withTtl(duration, unit)
             .withEncoder(*encoder)

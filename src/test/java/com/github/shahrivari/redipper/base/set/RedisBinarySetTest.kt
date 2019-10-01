@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
 
 @ExtendWith(RedisTest::class, RedisCacheTest::class)
@@ -15,7 +14,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to sadd and smembers kv (value is not tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("person")
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
@@ -29,7 +28,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to srem kv (value as tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("user")
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
@@ -47,7 +46,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to srem kv (value is not tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>("person")
         val userA = createPerson()
         val userB = createPerson()
 
@@ -87,20 +86,5 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
         val space = "testName"
         buildRedisBinarySetTest<String>(space)
         buildRedisBinarySetTest<String>(space, true)
-    }
-
-    @Test
-    internal fun `set value with ttl twice`() {
-        val mapTest = buildRedisBinarySetTest<String>(duration = 40, unit = TimeUnit.SECONDS)
-        val key = "key"
-
-        saddTest(mapTest, key, "value1")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
-
-        Thread.sleep(5000)
-        assertThat(mapTest.getTtl(key)).isEqualTo(35)
-
-        saddTest(mapTest, key, "value2")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
 }

@@ -28,7 +28,7 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
     }
 }
 
-inline fun <reified V : Serializable> RedisMapUtils.buildRedisMapTest(space: String = randomName,
+inline fun <reified V : Serializable> buildRedisMapTest(space: String,
                                                                       forceSpace: Boolean = false,
                                                                       duration: Long = 1,
                                                                       unit: TimeUnit = TimeUnit.MINUTES,

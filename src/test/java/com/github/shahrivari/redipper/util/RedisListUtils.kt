@@ -28,11 +28,11 @@ interface RedisListUtils : AppTestUtils, RedisCacheUtils {
     }
 }
 
-inline fun <reified V : Serializable> RedisListUtils.buildRedisListTest(space: String = randomName,
-                                                                        forceSpace: Boolean = false,
-                                                                        duration: Long = 1,
-                                                                        unit: TimeUnit = TimeUnit.MINUTES,
-                                                                        vararg encoder: Encoder): RedisList<V> {
+inline fun <reified V : Serializable> buildRedisListTest(space: String,
+                                                         forceSpace: Boolean = false,
+                                                         duration: Long = 1,
+                                                         unit: TimeUnit = TimeUnit.MINUTES,
+                                                         vararg encoder: Encoder): RedisList<V> {
     return RedisList.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
             .withTtl(duration, unit)
             .withEncoder(*encoder)
