@@ -1,6 +1,6 @@
 package com.github.shahrivari.redipper.redis
 
-import com.github.shahrivari.redipper.config.RedisClusterConfig
+import com.github.shahrivari.redipper.config.RedisConfig
 import io.lettuce.core.RedisURI
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands
 
@@ -10,8 +10,9 @@ class RedisClusterDao(private val name: String,
 
     companion object : RedisDaoFactory() {
         @Synchronized
-        fun create(name: String, config: RedisClusterConfig): RedisClusterDao {
-            return create(name, config.toRedisURIs(name))
+        fun create(name: String, config: RedisConfig): RedisClusterDao {
+            require(config.isCluster) { "Config is not set to be in cluster mode." }
+            return create(name, config.toRedisURI(name))
         }
 
         @Synchronized
