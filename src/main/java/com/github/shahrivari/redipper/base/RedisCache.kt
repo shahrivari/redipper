@@ -2,7 +2,6 @@ package com.github.shahrivari.redipper.base
 
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
-import com.github.shahrivari.redipper.config.RedisClusterConfig
 import com.github.shahrivari.redipper.config.RedisConfig
 import com.github.shahrivari.redipper.redis.RedisCacheAPI
 import com.github.shahrivari.redipper.redis.RedisClusterDao
@@ -44,7 +43,7 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
     }
 
     private fun createCacheRedisDao() {
-        redis = if (config is RedisClusterConfig)
+        redis = if (config.isCluster)
             RedisClusterDao.create("Cache", config)
         else
             RedisDao.create("Cache", config)
