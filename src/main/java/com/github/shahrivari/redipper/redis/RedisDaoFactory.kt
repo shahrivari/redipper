@@ -20,11 +20,8 @@ abstract class RedisDaoFactory {
     protected fun create(name: String,
                          config: RedisConfig,
                          pubsub: Boolean): StatefulRedisConnection<ByteArray, ByteArray> {
-
-        // ToDo Amin: can these two be moved to init
-        // ToDo Amin: pool
-        val redisURI = config.toRedisURI(name)
-
+        require(!config.isCluster) { "Config is not set to be in single mode." }
+        val redisURI = config.toRedisURI(name).first()
         return create(name, redisURI, pubsub)
     }
 
@@ -69,9 +66,9 @@ abstract class RedisDaoFactory {
             client = RedisClusterClient.create(redisURIs)
             // ToDo Amin: fill options
             client.setOptions(ClusterClientOptions.builder()
-                    .autoReconnect(true)
-                    .pingBeforeActivateConnection(true)
-                    .build())
+                                      .autoReconnect(true)
+                                      .pingBeforeActivateConnection(true)
+                                      .build())
 
             return client.connect(ByteArrayCodec())
         } catch (e: Throwable) {
