@@ -1,5 +1,7 @@
 # Redipper
 
+[![Build Status](https://travis-ci.org/shahrivari/redipper.svg?branch=master)](https://travis-ci.org/shahrivari/redipper)
+
 ### Goals / Background
 
 Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The core features are:
