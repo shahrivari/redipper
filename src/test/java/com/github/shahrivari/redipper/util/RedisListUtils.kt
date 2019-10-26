@@ -7,25 +7,20 @@ import java.util.concurrent.TimeUnit
 
 interface RedisListUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> lpushTest(redisCache: RedisList<V>, key: String, value: V) {
-        return redisCache.lpush(key, value)
-    }
+    fun <V : Serializable> lpushTest(redisCache: RedisList<V>, key: String, value: V) =
+            redisCache.lpush(key, value)
 
-    fun <V : Serializable> lpopTest(redisCache: RedisList<V>, key: String): V? {
-        return redisCache.lpop(key)
-    }
+    fun <V : Serializable> lpopTest(redisCache: RedisList<V>, key: String): V? =
+            redisCache.lpop(key)
 
-    fun <V : Serializable> rpopTest(redisCache: RedisList<V>, key: String): V? {
-        return redisCache.rpop(key)
-    }
+    fun <V : Serializable> rpopTest(redisCache: RedisList<V>, key: String): V? =
+            redisCache.rpop(key)
 
-    fun <V : Serializable> llenTest(redisCache: RedisList<V>, key: String): Long {
-        return redisCache.llen(key)
-    }
+    fun <V : Serializable> llenTest(redisCache: RedisList<V>, key: String): Long =
+            redisCache.llen(key)
 
-    fun <V : Serializable> getAllTest(redisCache: RedisList<V>, key: String): List<V?> {
-        return redisCache.getAll(key)
-    }
+    fun <V : Serializable> getAllTest(redisCache: RedisList<V>, key: String): List<V?> =
+            redisCache.getAll(key)
 }
 
 inline fun <reified V : Serializable> RedisListUtils.buildRedisListTest(space: String = randomName,

@@ -67,8 +67,7 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
         return serializer.deserialize(result)
     }
 
-    fun getTtl(key: String): Long? =
-            redis.ttl(key.prependSpace())
+    internal fun getTtl(key: String): Long? = redis.ttl(key.prependSpace())
 
     internal fun String.prependSpace() = "$space:$this".toByteArray()
 

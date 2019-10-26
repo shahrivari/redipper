@@ -7,25 +7,20 @@ import java.util.concurrent.TimeUnit
 
 interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> setTest(redisCache: RedisMap<V>, key: String, value: V?) {
-        redisCache.set(key, value)
-    }
+    fun <V : Serializable> setTest(redisCache: RedisMap<V>, key: String, value: V?) =
+            redisCache.set(key, value)
 
-    fun <V : Serializable> msetTest(redisCache: RedisMap<V>, kvs: Map<String, V>) {
-        redisCache.mset(kvs)
-    }
+    fun <V : Serializable> msetTest(redisCache: RedisMap<V>, kvs: Map<String, V>) =
+            redisCache.mset(kvs)
 
-    fun <V : Serializable> delTest(redisCache: RedisMap<V>, key: String): Long? {
-        return redisCache.del(key)
-    }
+    fun <V : Serializable> delTest(redisCache: RedisMap<V>, key: String): Long? =
+            redisCache.del(key)
 
-    fun <V : Serializable> getTest(redisCache: RedisMap<V>, key: String): V? {
-        return redisCache.get(key)
-    }
+    fun <V : Serializable> getTest(redisCache: RedisMap<V>, key: String): V? =
+            redisCache.get(key)
 
-    fun <V : Serializable> mgetTest(redisCache: RedisMap<V>, keys: Iterable<String>): Map<String, V> {
-        return redisCache.mget(keys)
-    }
+    fun <V : Serializable> mgetTest(redisCache: RedisMap<V>, keys: Iterable<String>): Map<String, V> =
+            redisCache.mget(keys)
 }
 
 inline fun <reified V : Serializable> RedisMapUtils.buildRedisMapTest(space: String = randomName,

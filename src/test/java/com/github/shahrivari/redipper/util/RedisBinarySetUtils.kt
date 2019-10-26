@@ -7,17 +7,14 @@ import java.util.concurrent.TimeUnit
 
 interface RedisBinarySetUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> saddTest(redisCache: RedisBinarySet<V>, key: String, value: V) {
-        return redisCache.sadd(key, value)
-    }
+    fun <V : Serializable> saddTest(redisCache: RedisBinarySet<V>, key: String, value: V) =
+            redisCache.sadd(key, value)
 
-    fun <V : Serializable> sremTest(redisCache: RedisBinarySet<V>, key: String, value: V): Long? {
-        return redisCache.srem(key, value)
-    }
+    fun <V : Serializable> sremTest(redisCache: RedisBinarySet<V>, key: String, value: V): Long? =
+            redisCache.srem(key, value)
 
-    fun <V : Serializable> smembersTest(redisCache: RedisBinarySet<V>, key: String): List<V> {
-        return redisCache.smembers(key)
-    }
+    fun <V : Serializable> smembersTest(redisCache: RedisBinarySet<V>, key: String): List<V> =
+            redisCache.smembers(key)
 }
 
 inline fun <reified V : Serializable> RedisBinarySetUtils.buildRedisBinarySetTest(space: String = randomName,
