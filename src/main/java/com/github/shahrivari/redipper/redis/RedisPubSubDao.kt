@@ -5,9 +5,10 @@ import io.lettuce.core.pubsub.RedisPubSubListener
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
 import io.lettuce.core.pubsub.api.sync.RedisPubSubCommands
 
-class RedisPubSubDao(private val name: String,
+class RedisPubSubDao(private val config: RedisConfig,
                      private val commands: RedisPubSubCommands<ByteArray, ByteArray>) :
         RedisPubSubCommands<ByteArray, ByteArray> by commands {
+    private var isClosed = false
 
     private var onMessage: (channel: ByteArray, message: ByteArray) -> Unit = { _, _ -> }
 
@@ -17,10 +18,11 @@ class RedisPubSubDao(private val name: String,
 
     companion object : RedisDaoFactory() {
         @Synchronized
-        fun create(name: String, config: RedisConfig): RedisPubSubDao {
-            val connection = create(name, config, true) as StatefulRedisPubSubConnection
+        fun create(config: RedisConfig): RedisPubSubDao {
+            require(!config.isCluster) { "Config is not set to be in single mode." }
+            val connection = create(config.toRedisURI().first(), true) as StatefulRedisPubSubConnection
             val commands = connection.sync() as RedisPubSubCommands
-            val redisPubSub = RedisPubSubDao(name, commands)
+            val redisPubSub = RedisPubSubDao(config, commands)
             val listener = object : RedisPubSubListener<ByteArray, ByteArray> {
                 override fun psubscribed(pattern: ByteArray, count: Long) {}
 
@@ -43,10 +45,11 @@ class RedisPubSubDao(private val name: String,
 
     @Synchronized
     fun close() {
-        statefulConnection.close()
-        val client = clients[name]
-        checkNotNull(client) { "Redis client $name does not exist." }
-        client.shutdown()
-        clients.remove(name)
+        if (!isClosed) {
+            statefulConnection.close()
+            RedisDaoFactory.close(config)
+            isClosed = true
+        } else
+            throw IllegalStateException("${config.uriSignature} Already closed!")
     }
 }

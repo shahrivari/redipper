@@ -17,11 +17,10 @@ class RedisSubscriber(private val host: String, private val port: Int = 6379) {
     }
 
     private fun createPublisherRedisDao() {
-        redis = RedisPubSubDao.create("Subscriber",
-                RedisConfig().apply {
-                    ipList = setOf(host)
-                    port = this@RedisSubscriber.port
-                })
+        redis = RedisPubSubDao.create(RedisConfig().apply {
+            ipList = setOf(host)
+            port = this@RedisSubscriber.port
+        })
     }
 
     fun subscribe(topic: String, callback: (ByteArray) -> Unit) {

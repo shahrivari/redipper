@@ -1,6 +1,7 @@
 package com.github.shahrivari.redipper.redis
 
 import com.github.shahrivari.redipper.config.RedisConfig
+import com.google.common.collect.HashMultiset
 import io.lettuce.core.AbstractRedisClient
 import io.lettuce.core.ClientOptions
 import io.lettuce.core.RedisClient
@@ -11,69 +12,73 @@ import io.lettuce.core.cluster.RedisClusterClient
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection
 import io.lettuce.core.codec.ByteArrayCodec
 import mu.KotlinLogging
+import java.util.*
 
 abstract class RedisDaoFactory {
     private val logger = KotlinLogging.logger {}
 
-    protected val clients = mutableMapOf<String, RedisClient>()
+    companion object {
+        protected val clients = Collections.synchronizedMap(mutableMapOf<String, AbstractRedisClient>())
+        protected val activeCount = HashMultiset.create<String>()
 
-    protected fun create(name: String,
-                         config: RedisConfig,
-                         pubsub: Boolean): StatefulRedisConnection<ByteArray, ByteArray> {
-        require(!config.isCluster) { "Config is not set to be in single mode." }
-        val redisURI = config.toRedisURI(name).first()
-        return create(name, redisURI, pubsub)
+        fun close(config: RedisConfig) {
+            val client = clients[config.uriSignature]
+            activeCount.remove(config.uriSignature)
+            if (!activeCount.contains(config.uriSignature)) {
+                checkNotNull(client) { "Redis client ${config.uriSignature} does not exist." }
+                client.shutdown()
+                clients.remove(config.uriSignature)
+            }
+        }
+
     }
 
-    protected fun create(name: String,
-                         redisURI: RedisURI,
+    protected fun create(redisURI: RedisURI,
                          pubsub: Boolean): StatefulRedisConnection<ByteArray, ByteArray> {
-        // ToDo Amin: can these two be moved to init
-        val client: RedisClient
-
         try {
-            if (clients.containsKey(name))
-                error("$name redis already exists.")
-
-            // ToDo Amin: pool
-            client = RedisClient.create(redisURI)
-            // ToDo Amin: fill options
-            client.options = ClientOptions.builder()
-                    .autoReconnect(true)
-                    .pingBeforeActivateConnection(true)
-                    .build()
+            activeCount.add(redisURI.signature)
+            val redisClient =
+                    clients.getOrPut(redisURI.signature) {
+                        val cli = RedisClient.create(redisURI)
+                        // ToDo Amin: fill options
+                        cli.options = ClientOptions.builder()
+                                .autoReconnect(true)
+                                .pingBeforeActivateConnection(true)
+                                .build()
+                        return@getOrPut cli
+                    } as RedisClient
 
             return if (pubsub)
-                client.connectPubSub(ByteArrayCodec())
+                redisClient.connectPubSub(ByteArrayCodec())
             else
-                client.connect(ByteArrayCodec())
+                redisClient.connect(ByteArrayCodec())
 
         } catch (e: Throwable) {
-            logger.error(e) { "Error in connecting to ${name}Redis." }
-            throw IllegalStateException("Error in connecting to ${name}Redis.", e)
+            logger.error(e) { "Error in connecting to ${redisURI.signature}" }
+            throw IllegalStateException("Error in connecting to ${redisURI.signature}", e)
         }
     }
 
-    protected fun createClusterConnection(name: String, redisURIs: List<RedisURI>):
+    protected fun createClusterConnection(redisURIs: List<RedisURI>):
             StatefulRedisClusterConnection<ByteArray, ByteArray> {
-        val client: AbstractRedisClient
 
         try {
-            if (clients.containsKey(name))
-                error("$name redis already exists.")
+            activeCount.add(redisURIs.signature)
+            val redisClient =
+                    clients.getOrPut(redisURIs.signature) {
+                        val cli = RedisClusterClient.create(redisURIs)
+                        // ToDo Amin: fill options
+                        cli.setOptions(ClusterClientOptions.builder()
+                                               .autoReconnect(true)
+                                               .pingBeforeActivateConnection(true)
+                                               .build())
+                        return@getOrPut cli
+                    } as RedisClusterClient
 
-            // ToDo Amin: pool
-            client = RedisClusterClient.create(redisURIs)
-            // ToDo Amin: fill options
-            client.setOptions(ClusterClientOptions.builder()
-                                      .autoReconnect(true)
-                                      .pingBeforeActivateConnection(true)
-                                      .build())
-
-            return client.connect(ByteArrayCodec())
+            return redisClient.connect(ByteArrayCodec())
         } catch (e: Throwable) {
-            logger.error(e) { "Error in connecting to ${name}Redis." }
-            throw IllegalStateException("Error in connecting to ${name}Redis.", e)
+            logger.error(e) { "Error in connecting to ${redisURIs.signature}" }
+            throw IllegalStateException("Error in connecting to ${redisURIs.signature}", e)
         }
     }
 }

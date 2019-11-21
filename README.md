@@ -4,6 +4,8 @@
 
 ### Goals / Background
 
+[![Build Status](https://travis-ci.org/shahrivari/redipper.svg?branch=master)](https://travis-ci.org/shahrivari/redipper) [![Coverage Status](https://coveralls.io/repos/github/shahrivari/redipper/badge.svg?branch=master)](https://coveralls.io/github/shahrivari/redipper?branch=master)
+
 Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The core features are:
 
 * Definition of spaces over redis which gives a table-like feel over db.
