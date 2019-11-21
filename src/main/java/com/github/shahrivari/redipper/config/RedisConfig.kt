@@ -1,5 +1,6 @@
 package com.github.shahrivari.redipper.config
 
+import com.github.shahrivari.redipper.redis.signature
 import io.lettuce.core.RedisURI
 import java.time.Duration
 
@@ -13,9 +14,14 @@ open class RedisConfig {
     var sentinelPort: Int = 26379
     var isCluster: Boolean = false
 
+    val uriSignature
+        get() =
+            if (isCluster) toRedisURI().signature
+            else toRedisURI().first().signature
+
     override fun toString() = "Redis: ${ipList.joinToString(",")}:$port/$db"
 
-    open fun toRedisURI(name: String): List<RedisURI> {
+    open fun toRedisURI(): List<RedisURI> {
         require(ipList.isNotEmpty()) { "Ip list cannot be empty!" }
 
         return if (!isCluster) {

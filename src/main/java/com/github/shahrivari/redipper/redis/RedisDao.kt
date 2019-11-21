@@ -1,35 +1,30 @@
 package com.github.shahrivari.redipper.redis
 
 import com.github.shahrivari.redipper.config.RedisConfig
-import io.lettuce.core.RedisURI
 import io.lettuce.core.api.sync.RedisCommands
 
-class RedisDao(private val name: String,
+class RedisDao(private val config: RedisConfig,
                private val commands: RedisCommands<ByteArray, ByteArray>)
     : RedisCommands<ByteArray, ByteArray> by commands, RedisCacheAPI<ByteArray, ByteArray> {
+    private var isClosed = false
 
     companion object : RedisDaoFactory() {
         @Synchronized
-        fun create(name: String, config: RedisConfig): RedisDao {
-            val connection = create(name, config, false)
+        fun create(config: RedisConfig): RedisDao {
+            require(!config.isCluster) { "Config is not set to be in single mode." }
+            val connection = create(config.toRedisURI().first(), false)
             val commands = connection.sync()
-            return RedisDao(name, commands)
-        }
-
-        @Synchronized
-        fun create(name: String, redisURI: RedisURI): RedisDao {
-            val connection = create(name, redisURI, false)
-            val commands = connection.sync()
-            return RedisDao(name, commands)
+            return RedisDao(config, commands)
         }
     }
 
     @Synchronized
     override fun close() {
-        statefulConnection.close()
-        val client = clients[name]
-        checkNotNull(client) { "Redis client $name does not exist." }
-        client.shutdown()
-        clients.remove(name)
+        if (!isClosed) {
+            statefulConnection.close()
+            RedisDaoFactory.close(config)
+            isClosed = true
+        } else
+            throw IllegalStateException("${config.uriSignature} Already closed!")
     }
 }

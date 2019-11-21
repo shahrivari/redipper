@@ -11,11 +11,10 @@ class RedisPublisher(private val host: String, private val port: Int) {
     }
 
     private fun createPublisherRedisDao() {
-        redis = RedisPubSubDao.create("Publisher",
-                RedisConfig().apply {
-                    ipList = setOf(host)
-                    port = this@RedisPublisher.port
-                })
+        redis = RedisPubSubDao.create(RedisConfig().apply {
+            ipList = setOf(host)
+            port = this@RedisPublisher.port
+        })
     }
 
     fun publish(topic: String, msg: ByteArray) {

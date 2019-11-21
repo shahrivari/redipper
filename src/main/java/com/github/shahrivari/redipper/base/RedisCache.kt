@@ -44,9 +44,9 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
 
     private fun createCacheRedisDao() {
         redis = if (config.isCluster)
-            RedisClusterDao.create("Cache", config)
+            RedisClusterDao.create(config)
         else
-            RedisDao.create("Cache", config)
+            RedisDao.create(config)
 
         logger.info { "Redis $space cache created successfully." }
     }
