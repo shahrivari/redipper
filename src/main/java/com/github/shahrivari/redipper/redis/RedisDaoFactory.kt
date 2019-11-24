@@ -11,6 +11,7 @@ import io.lettuce.core.cluster.ClusterClientOptions
 import io.lettuce.core.cluster.RedisClusterClient
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection
 import io.lettuce.core.codec.ByteArrayCodec
+import io.lettuce.core.resource.DefaultClientResources
 import mu.KotlinLogging
 import java.util.*
 
@@ -39,7 +40,12 @@ abstract class RedisDaoFactory {
             activeCount.add(redisURI.signature)
             val redisClient =
                     clients.getOrPut(redisURI.signature) {
-                        val cli = RedisClient.create(redisURI)
+                        val resource = DefaultClientResources.builder()
+                                .ioThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
+                                .computationThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
+                                .build()
+
+                        val cli = RedisClient.create(resource, redisURI)
                         // ToDo Amin: fill options
                         cli.options = ClientOptions.builder()
                                 .autoReconnect(true)
