@@ -8,8 +8,10 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 
 @ExtendWith(RedisTest::class, RedisCacheTest::class)
@@ -46,6 +48,24 @@ internal class RedisMapTest : RedisMapUtils {
     }
 
     @Test
+    internal fun `null in mget`() {
+        val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
+        val original =
+                (1..10).map { if (it % 2 == 0) createPerson() else null }
+                        .associateBy { it?.id?.toString() ?: Random.nextLong().toString() }
+
+        msetTest(userCache, original)
+        val map = mgetTest(userCache, original.keys)
+
+        map.forEach { (key, value) ->
+            assertThat(value).isEqualTo(original[key])
+        }
+
+        val nonExisting = (1..5).map { Random.nextLong().toString() }
+        assertTrue(mgetTest(userCache, nonExisting).isEmpty())
+    }
+
+    @Test
     internal fun `should be able to set and get multiple kvs (value is not tl)`() {
         val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
 
@@ -59,9 +79,9 @@ internal class RedisMapTest : RedisMapUtils {
         val map = mgetTest(userCache, userList.keys)
 
         map.forEach { (key, value) ->
-            assertThat(value.name).isEqualTo(userList[key]!!.name)
-            assertThat(value.id).isEqualTo(userList[key]!!.id)
-            assertThat(value.phone).isEqualTo(userList[key]!!.phone)
+            assertThat(value?.name).isEqualTo(userList[key]!!.name)
+            assertThat(value?.id).isEqualTo(userList[key]!!.id)
+            assertThat(value?.phone).isEqualTo(userList[key]!!.phone)
         }
     }
 

@@ -8,17 +8,21 @@ interface Serializer<V> {
 class IntSerializer : Serializer<Int> {
     override fun serialize(value: Int) = value.toString().toByteArray()
 
-    override fun deserialize(bytes: ByteArray) = String(bytes).toInt()
+    override fun deserialize(bytes: ByteArray) = String(bytes).toIntOrNull()
 }
 
 class StringSerializer : Serializer<String> {
-    override fun serialize(value: String) = value.toByteArray()
+    override fun serialize(value: String) = "S$value".toByteArray()
 
-    override fun deserialize(bytes: ByteArray) = String(bytes)
+    override fun deserialize(bytes: ByteArray) =
+            if(bytes.isEmpty())
+                null
+            else
+                String(bytes).substring(1)
 }
 
 class LongSerializer : Serializer<Long> {
     override fun serialize(value: Long) = value.toString().toByteArray()
 
-    override fun deserialize(bytes: ByteArray) = String(bytes).toLong()
+    override fun deserialize(bytes: ByteArray) = String(bytes).toLongOrNull()
 }

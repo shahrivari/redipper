@@ -85,8 +85,8 @@ class GeneralSerializer<V : Any>(private val clazz: Class<V>) : Serializer<V> {
         }
     }
 
-    override fun deserialize(bytes: ByteArray): V {
-        require(bytes.isNotEmpty()) { "content must not be null." }
+    override fun deserialize(bytes: ByteArray): V? {
+        if (bytes.isEmpty()) return null
 
         return try {
             val objectStream = ByteArrayInputStream(bytes, 1, bytes.size - 1)
