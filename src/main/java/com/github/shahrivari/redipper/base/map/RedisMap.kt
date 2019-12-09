@@ -64,20 +64,24 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
     }
 
     // ToDo MoHoLiaghat: ba for khoob nist bayad avaz she -> batch beshe
-    fun mset(kvs: Map<String, V>) =
+    fun mset(kvs: Map<String, V?>) =
             kvs.entries.parallelStream().forEach { (k, v) -> set(k, v) }
 
-    fun mget(keys: Iterable<String>): Map<String, V> {
+    fun mget(keys: Iterable<String>): Map<String, V?> {
         val array = keys.distinct().map { it.prependSpace() }.toTypedArray()
         if (array.isEmpty()) return emptyMap()
 
-        val map = mutableMapOf<String, V>()
+        val map = mutableMapOf<String, V?>()
 
         redis.mget(*array).forEach {
             //just return the present keys
             val k = it.key.getKeyPart()
-            val v = if (it.hasValue()) deserialize(it.value) else loadIfNeeded(k, null)
-            if (v != null) map[k] = v
+            if (!it.hasValue()) {
+                val v = loadIfNeeded(k, null)
+                if (v != null) map[k] = v
+            } else {
+                map[k] = deserialize(it.value)
+            }
         }
 
         return map

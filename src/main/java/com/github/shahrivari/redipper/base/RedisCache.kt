@@ -60,6 +60,8 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
     }
 
     protected fun deserialize(bytes: ByteArray): V? {
+        if (bytes.isEmpty()) return null
+
         var result = bytes
         if (encoder != null)
             result = encoder.decode(bytes)

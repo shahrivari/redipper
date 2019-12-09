@@ -10,7 +10,7 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> setTest(redisCache: RedisMap<V>, key: String, value: V?) =
             redisCache.set(key, value)
 
-    fun <V : Serializable> msetTest(redisCache: RedisMap<V>, kvs: Map<String, V>) =
+    fun <V : Serializable> msetTest(redisCache: RedisMap<V>, kvs: Map<String, V?>) =
             redisCache.mset(kvs)
 
     fun <V : Serializable> delTest(redisCache: RedisMap<V>, key: String): Long? =
@@ -19,7 +19,7 @@ interface RedisMapUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> getTest(redisCache: RedisMap<V>, key: String): V? =
             redisCache.get(key)
 
-    fun <V : Serializable> mgetTest(redisCache: RedisMap<V>, keys: Iterable<String>): Map<String, V> =
+    fun <V : Serializable> mgetTest(redisCache: RedisMap<V>, keys: Iterable<String>) =
             redisCache.mget(keys)
 }
 
