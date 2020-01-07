@@ -87,8 +87,8 @@ internal class RedisListTest : RedisListUtils {
         lpushTest(mapTest, key, "value1")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
 
-        Thread.sleep(5000)
-        assertThat(mapTest.getTtl(key)).isEqualTo(35)
+        Thread.sleep(2000)
+        assertThat(mapTest.getTtl(key)).isEqualTo(38)
 
         lpushTest(mapTest, key, "value2")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)

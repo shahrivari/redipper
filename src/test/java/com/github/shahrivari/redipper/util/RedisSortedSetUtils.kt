@@ -19,7 +19,7 @@ interface RedisSortedSetUtils : AppTestUtils, RedisCacheUtils {
             redisCache.zrange(key, start, stop)
 }
 
-inline fun <reified V : Serializable> RedisSortedSetUtils.buildRedisBinarySetTest(space: String = randomName,
+inline fun <reified V : Serializable> RedisSortedSetUtils.buildRedisSortedSetTest(space: String = randomName,
                                                                                   forceSpace: Boolean = false,
                                                                                   duration: Long = 1,
                                                                                   unit: TimeUnit = TimeUnit.MINUTES,

@@ -11,11 +11,11 @@ import kotlin.test.assertNotNull
 
 @ExtendWith(RedisTest::class, RedisCacheTest::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class RedisBinarySetTest : RedisBinarySetUtils {
+internal class RedisSetTest : RedisSetUtils {
 
     @Test
     internal fun `should be able to sadd and smembers kv (value is not tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
@@ -29,7 +29,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to srem kv (value as tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
         saddTest(userCache, person.id.toString(), person)
@@ -47,7 +47,7 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
 
     @Test
     internal fun `should be able to srem kv (value is not tl)`() {
-        val userCache = buildRedisBinarySetTest<RedisCacheUtils.Person>()
+        val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val userA = createPerson()
         val userB = createPerson()
 
@@ -75,32 +75,42 @@ internal class RedisBinarySetTest : RedisBinarySetUtils {
     @Test
     internal fun `duplicate space should not be correct`() {
         val space = "testName"
-        buildRedisBinarySetTest<String>(space)
+        buildRedisSetTest<String>(space)
 
         assertThrows<IllegalArgumentException> {
-            buildRedisBinarySetTest<String>(space)
+            buildRedisSetTest<String>(space)
         }
     }
 
     @Test
     internal fun `duplicate space with force parameter should be correct`() {
         val space = "testName"
-        buildRedisBinarySetTest<String>(space)
-        buildRedisBinarySetTest<String>(space, true)
+        buildRedisSetTest<String>(space)
+        buildRedisSetTest<String>(space, true)
     }
 
     @Test
     internal fun `set value with ttl twice`() {
-        val mapTest = buildRedisBinarySetTest<String>(duration = 40, unit = TimeUnit.SECONDS)
+        val mapTest = buildRedisSetTest<String>(duration = 40, unit = TimeUnit.SECONDS)
         val key = "key"
 
         saddTest(mapTest, key, "value1")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
 
-        Thread.sleep(5000)
-        assertThat(mapTest.getTtl(key)).isEqualTo(35)
+        Thread.sleep(2000)
+        assertThat(mapTest.getTtl(key)).isEqualTo(38)
 
         saddTest(mapTest, key, "value2")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
+    }
+
+    @Test
+    internal fun `put and get with loader`() {
+        val persons = listOf(createPerson(), createPerson())
+        val userCache = buildRedisSetTest("testName") { persons }
+        val users = userCache.smembers(randomName).toList()
+        assertThat(users.size).isEqualTo(2)
+        assertThat(users[0].id).isEqualTo(persons[0].id)
+        assertThat(users[1].id).isEqualTo(persons[1].id)
     }
 }

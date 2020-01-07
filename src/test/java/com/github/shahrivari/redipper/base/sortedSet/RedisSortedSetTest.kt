@@ -3,7 +3,7 @@ package com.github.shahrivari.redipper.base.sortedSet
 import com.github.shahrivari.redipper.util.RedisCacheTest
 import com.github.shahrivari.redipper.util.RedisSortedSetUtils
 import com.github.shahrivari.redipper.util.RedisTest
-import com.github.shahrivari.redipper.util.buildRedisBinarySetTest
+import com.github.shahrivari.redipper.util.buildRedisSortedSetTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -16,7 +16,7 @@ internal class RedisSortedSetTest : RedisSortedSetUtils {
 
     @Test
     internal fun `set and get correctly`() {
-        val set = buildRedisBinarySetTest<Int>()
+        val set = buildRedisSortedSetTest<Int>()
 
         zaddTest(set, 1.toString(), Pair(1, 1111))
         zaddTest(set, 1.toString(), Pair(4, 2222))

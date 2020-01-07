@@ -58,14 +58,15 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
             redis.set(key.prependSpace(), bytes)
     }
 
-    fun get(key: String): V? {
-        val bytes = redis.get(key.prependSpace())
-        return loadIfNeeded(key, bytes)
+    fun mset(kvs: Map<String, V?>) {
+        val map = kvs.entries.associate {
+            it.key.prependSpace() to (it.value?.let { value -> serialize(value) } ?: EMPTY_BYTES)
+        }
+        redis.mset(map)
     }
 
-    // ToDo MoHoLiaghat: ba for khoob nist bayad avaz she -> batch beshe
-    fun mset(kvs: Map<String, V?>) =
-            kvs.entries.parallelStream().forEach { (k, v) -> set(k, v) }
+    fun get(key: String): V? =
+            loadIfNeeded(key, redis.get(key.prependSpace()))
 
     fun mget(keys: Iterable<String>): Map<String, V?> {
         val array = keys.distinct().map { it.prependSpace() }.toTypedArray()
@@ -94,8 +95,11 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
             redis.set(key.prependSpace(), redis.get(key.prependSpace()))
 
 
-    class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :
-            LoadingBuilder<RedisMap<V>, V>(config, space, clazz) {
+    class Builder<V : Serializable>(config: RedisConfig,
+                                    space: String,
+                                    forceSpace: Boolean,
+                                    clazz: Class<V>)
+        : LoadingBuilder<RedisMap<V>, V>(config, space, clazz) {
 
         init {
             if (!forceSpace) checkSpaceExistence(space)

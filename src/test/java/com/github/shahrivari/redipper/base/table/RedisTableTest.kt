@@ -74,8 +74,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("Expire of hash not supported in jedis mock.")
     internal fun `set value with ttl twice`() {
-        val redisTable =
-                buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, unit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, unit = TimeUnit.SECONDS)
 
         val person = createPerson()
         val field = "test"
