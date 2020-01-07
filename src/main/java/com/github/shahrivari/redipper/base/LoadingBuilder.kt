@@ -12,19 +12,14 @@ abstract class LoadingBuilder<T, V : Serializable>(config: RedisConfig, space: S
 
     protected var loader: ((String) -> V?)? = null
 
-    fun withLoader(loader: (String) -> V?): LoadingBuilder<T, V> {
-        return apply { this.loader = loader }
-    }
+    fun withLoader(loader: (String) -> V?): LoadingBuilder<T, V> = apply { this.loader = loader }
 
-    override fun withTtl(duration: Long, unit: TimeUnit): LoadingBuilder<T, V> {
-        return super.withTtl(duration, unit) as LoadingBuilder<T, V>
-    }
+    override fun withTtl(duration: Long, unit: TimeUnit): LoadingBuilder<T, V> =
+            super.withTtl(duration, unit) as LoadingBuilder<T, V>
 
-    override fun withSerializer(serializer: Serializer<V>): LoadingBuilder<T, V> {
-        return super.withSerializer(serializer) as LoadingBuilder<T, V>
-    }
+    override fun withSerializer(serializer: Serializer<V>): LoadingBuilder<T, V> =
+            super.withSerializer(serializer) as LoadingBuilder<T, V>
 
-    override fun withEncoder(vararg encoder: Encoder): LoadingBuilder<T, V> {
-        return super.withEncoder(*encoder) as LoadingBuilder<T, V>
-    }
+    override fun withEncoder(vararg encoder: Encoder): LoadingBuilder<T, V> =
+            super.withEncoder(*encoder) as LoadingBuilder<T, V>
 }
