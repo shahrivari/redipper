@@ -88,8 +88,8 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
         return map
     }
 
-    fun del(key: String): Long =
-            redis.del(key.prependSpace())
+    fun del(vararg key: String) =
+            redis.del(*key.map { it.prependSpace() }.toTypedArray())
 
     fun removeTtl(key: String) =
             redis.set(key.prependSpace(), redis.get(key.prependSpace()))
