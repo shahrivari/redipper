@@ -53,6 +53,9 @@ open class RedisSet<V : Serializable> : RedisCache<V> {
     fun isMember(key: String, value: V) =
             redis.sismember(key.prependSpace(), serialize(value))
 
+    fun del(vararg key: String) =
+            redis.del(*key.map { it.prependSpace() }.toTypedArray())
+
 
     class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :
             MultiLoadingBuilder<RedisSet<V>, V>(config, space, clazz) {

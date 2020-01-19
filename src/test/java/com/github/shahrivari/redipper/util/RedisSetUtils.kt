@@ -15,6 +15,9 @@ interface RedisSetUtils : AppTestUtils, RedisCacheUtils {
 
     fun <V : Serializable> smembersTest(redisCache: RedisSet<V>, key: String): List<V> =
             redisCache.smembers(key).toList()
+
+    fun <V : Serializable> delTest(redisCache: RedisSet<V>, key: String): Long? =
+            redisCache.del(key)
 }
 
 inline fun <reified V : Serializable> RedisSetUtils.buildRedisSetTest(space: String = randomName,

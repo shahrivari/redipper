@@ -113,4 +113,18 @@ internal class RedisSetTest : RedisSetUtils {
         assertThat(users[0].id).isEqualTo(persons[0].id)
         assertThat(users[1].id).isEqualTo(persons[1].id)
     }
+
+    @Test
+    internal fun `should be able to delete kv from cache (value is not tl)`() {
+        val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
+        val person = createPerson()
+
+        saddTest(userCache, person.id.toString(), person)
+        val members = smembersTest(userCache, person.id.toString())
+        assertThat(members.size).isEqualTo(1)
+
+        delTest(userCache, person.id.toString())
+        val user = smembersTest(userCache, person.id.toString())
+        assertThat(user.size).isEqualTo(0)
+    }
 }
