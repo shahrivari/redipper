@@ -62,7 +62,7 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
         val map = kvs.entries.associate {
             it.key.prependSpace() to (it.value?.let { value -> serialize(value) } ?: EMPTY_BYTES)
         }
-        redis.mset(map)
+        if (kvs.isNotEmpty()) redis.mset(map)
     }
 
     fun get(key: String): V? =
