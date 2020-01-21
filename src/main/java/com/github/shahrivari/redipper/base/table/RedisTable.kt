@@ -1,22 +1,29 @@
 package com.github.shahrivari.redipper.base.table
 
-import com.github.shahrivari.redipper.base.BaseBuilder
 import com.github.shahrivari.redipper.base.RedisCache
+import com.github.shahrivari.redipper.base.builder.MapLoadingBuilder
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import java.io.Serializable
+import java.util.concurrent.TimeUnit
 
 open class RedisTable<V : Serializable> : RedisCache<V> {
+    private val loader: ((String) -> Map<String, V>)?
 
     protected constructor(config: RedisConfig,
+                          loader: ((String) -> Map<String, V>)?,
                           space: String,
                           ttlSeconds: Long,
                           serializer: Serializer<V>,
                           encoder: Encoder?)
-            : super(config, space, ttlSeconds, serializer, encoder)
+            : super(config, space, ttlSeconds, serializer, encoder) {
+        this.loader = loader
+    }
 
     companion object {
+        private val EMPTY_BYTES = ByteArray(0)
+
         inline fun <reified T : Serializable> newBuilder(config: RedisConfig,
                                                          space: String,
                                                          forceSpace: Boolean = false): Builder<T> {
@@ -24,18 +31,59 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
         }
     }
 
-    fun hset(key: String, field: String, value: V) {
-        redis.hset(key.prependSpace(), field.toByteArray(), serialize(value))
+    private fun loadIfNeeded(key: String) {
+        if (hlen(key) == 0L && loader != null)
+            hmset(key, loader.invoke(key))
+    }
+
+    fun hset(key: String, field: String, value: V?) {
+        val bytes = if (value == null) EMPTY_BYTES else serialize(value)
+
+        redis.hset(key.prependSpace(), field.toByteArray(), bytes)
         if (ttlSeconds > 0)
             redis.expire(key.prependSpace(), ttlSeconds)
     }
 
+    fun hmset(key: String, fieldValue: Map<String, V?>) {
+        val bytes = fieldValue.map {
+            it.key.toByteArray() to (it.value?.let { serialize(it) } ?: EMPTY_BYTES)
+        }.toMap()
+
+        redis.hmset(key.prependSpace(), bytes)
+    }
+
+    fun hget(key: String, field: String): V? {
+        loadIfNeeded(key)
+        val bytes = redis.hget(key.prependSpace(), field.toByteArray())
+        return bytes?.let { deserialize(it) }
+    }
+
+    fun hmget(key: String, vararg fields: String): Map<String, V?> {
+        loadIfNeeded(key)
+        val array = fields.distinct().map { it.toByteArray() }.toTypedArray()
+        if (array.isEmpty()) return emptyMap()
+
+        val map = mutableMapOf<String, V?>()
+
+        redis.hmget(key.prependSpace(), *array).forEach {
+            //just return the present keys
+            val k = String(it.key)
+            if (it.hasValue())
+                map[k] = deserialize(it.value)
+        }
+
+        return map
+    }
+
+    fun hgetAll(key: String): Map<String, V?> {
+        loadIfNeeded(key)
+        return redis.hgetall(key.prependSpace()).map {
+            String(it.key) to deserialize(it.value)
+        }.toMap()
+    }
+
     fun hdel(key: String, field: String) =
             redis.hdel(key.prependSpace(), field.toByteArray())
-
-    fun hgetAll(key: String) =
-            redis.hgetall(key.prependSpace())
-                    .map { String(it.key, Charsets.UTF_8) to deserialize(it.value) }.toMap()
 
     fun hexists(key: String, field: String) =
             redis.hexists(key.prependSpace(), field.toByteArray())
@@ -46,8 +94,11 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
             redis.hkeys(key.prependSpace()).map { String(it) }
 
 
-    class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean = false, clazz: Class<V>) :
-            BaseBuilder<RedisTable<V>, V>(config, space, clazz) {
+    class Builder<V : Serializable>(config: RedisConfig,
+                                    space: String,
+                                    forceSpace: Boolean = false,
+                                    clazz: Class<V>) :
+            MapLoadingBuilder<RedisTable<V>, V>(config, space, clazz) {
 
         init {
             if (!forceSpace) checkSpaceExistence(space)
@@ -58,7 +109,7 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
             if (serializer == null)
                 specifySerializer()
 
-            return RedisTable(config, space, ttlSeconds, serializer!!, encoder)
+            return RedisTable(config, loader, space, ttlSeconds, serializer!!, encoder)
         }
     }
 }

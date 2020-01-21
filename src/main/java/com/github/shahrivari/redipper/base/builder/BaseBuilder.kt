@@ -1,4 +1,4 @@
-package com.github.shahrivari.redipper.base
+package com.github.shahrivari.redipper.base.builder
 
 import com.github.shahrivari.redipper.base.encoding.CombinedEncoder
 import com.github.shahrivari.redipper.base.encoding.Encoder

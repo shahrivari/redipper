@@ -1,7 +1,7 @@
 package com.github.shahrivari.redipper.base.set
 
-import com.github.shahrivari.redipper.base.MultiLoadingBuilder
 import com.github.shahrivari.redipper.base.RedisCache
+import com.github.shahrivari.redipper.base.builder.IterableLoadingBuilder
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
@@ -58,7 +58,7 @@ open class RedisSet<V : Serializable> : RedisCache<V> {
 
 
     class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :
-            MultiLoadingBuilder<RedisSet<V>, V>(config, space, clazz) {
+            IterableLoadingBuilder<RedisSet<V>, V>(config, space, clazz) {
 
         init {
             if (!forceSpace) checkSpaceExistence(space)
