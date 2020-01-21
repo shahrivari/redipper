@@ -1,7 +1,7 @@
 package com.github.shahrivari.redipper.base.sortedSet
 
-import com.github.shahrivari.redipper.base.BaseBuilder
 import com.github.shahrivari.redipper.base.RedisCache
+import com.github.shahrivari.redipper.base.builder.BaseBuilder
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig

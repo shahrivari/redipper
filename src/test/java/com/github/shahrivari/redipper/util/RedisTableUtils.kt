@@ -7,8 +7,11 @@ import java.util.concurrent.TimeUnit
 
 interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
 
-    fun <V : Serializable> hsetTest(redisCache: RedisTable<V>, key: String, field: String, value: V) =
+    fun <V : Serializable> hsetTest(redisCache: RedisTable<V>, key: String, field: String, value: V?) =
             redisCache.hset(key, field, value)
+
+    fun <V : Serializable> hmsetTest(redisCache: RedisTable<V>, key: String, fieldValue: Map<String, V?>) =
+            redisCache.hmset(key, fieldValue)
 
     fun <V : Serializable> hdelTest(redisCache: RedisTable<V>, key: String, field: String): Long? =
             redisCache.hdel(key, field)
@@ -19,7 +22,13 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> hexistsTest(redisCache: RedisTable<V>, key: String, field: String): Boolean? =
             redisCache.hexists(key, field)
 
-    fun <V : Serializable> hgetAllTest(redisCache: RedisTable<V>, key: String, field: String): Map<String, V?> =
+    fun <V : Serializable> hgetTest(redisCache: RedisTable<V>, key: String, field: String) =
+            redisCache.hget(key, field)
+
+    fun <V : Serializable> hmgetTest(redisCache: RedisTable<V>, key: String, vararg field: String) =
+            redisCache.hmget(key, *field)
+
+    fun <V : Serializable> hgetAllTest(redisCache: RedisTable<V>, key: String) =
             redisCache.hgetAll(key)
 }
 
@@ -27,9 +36,15 @@ inline fun <reified V : Serializable> RedisTableUtils.buildRedisTableTest(space:
                                                                           forceSpace: Boolean = false,
                                                                           duration: Long = 1,
                                                                           unit: TimeUnit = TimeUnit.MINUTES,
+                                                                          noinline loader: ((String) -> Map<String, V>)? = null,
                                                                           vararg encoder: Encoder): RedisTable<V> {
-    return RedisTable.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
-            .withTtl(duration, unit)
-            .withEncoder(*encoder)
-            .build()
+    val builder =
+            RedisTable.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
+                    .withTtl(duration, unit)
+                    .withEncoder(*encoder)
+
+    if (loader != null)
+        builder.withLoader(loader)
+
+    return builder.build()
 }

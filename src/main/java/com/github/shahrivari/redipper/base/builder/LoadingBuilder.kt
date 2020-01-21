@@ -1,14 +1,13 @@
-package com.github.shahrivari.redipper.base
+package com.github.shahrivari.redipper.base.builder
 
 import com.github.shahrivari.redipper.base.encoding.Encoder
-import com.github.shahrivari.redipper.base.map.RedisMap
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
 abstract class LoadingBuilder<T, V : Serializable>(config: RedisConfig, space: String, clazz: Class<V>) :
-        BaseBuilder<RedisMap<V>, V>(config, space, clazz) {
+        BaseBuilder<T, V>(config, space, clazz) {
 
     protected var loader: ((String) -> V?)? = null
 
