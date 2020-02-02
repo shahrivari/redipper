@@ -77,7 +77,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("Expire of hash not supported in jedis mock.")
     internal fun `set value with ttl twice`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, unit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
 
         val person = createPerson()
         val field = "test"
@@ -95,7 +95,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("hlen not support")
     internal fun `should eliminate null values`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, unit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
         val person = createPerson()
         val field = "test"
 
@@ -122,7 +122,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("hlen not support")
     internal fun `should eliminate null values when get all fields`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, unit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
         val key = "alaki"
 
         val p1 = createPerson()
@@ -160,5 +160,37 @@ internal class RedisTableTest : RedisTableUtils {
 
         val map = hgetAllTest(redisTable, "key")
         assertThat(map.size).isEqualTo(4)
+    }
+
+    @Disabled("hlen and hdel(multiple delete) not support")
+    @Test
+    internal fun `all fields should be delete from cache`() {
+        val redisTable = buildRedisTableTest<Int>()
+        val fieldValue = mapOf("f1" to 1,
+                               "f2" to 2,
+                               "f3" to 3,
+                               "f5" to null,
+                               "f6" to 6,
+                               "f7" to 7,
+                               "f8" to null)
+
+        hmsetTest(redisTable, "key", fieldValue)
+
+        hsetTest(redisTable, "key2", "f1", 1)
+
+        val key = hgetAllTest(redisTable, "key")
+        val key2 = hgetAllTest(redisTable, "key2")
+
+        assertThat(key.keys.size).isEqualTo(7)
+        assertThat(key2.keys.size).isEqualTo(1)
+
+        val hkeysAllTest = hkeysAllTest(redisTable, "key")
+        hdelTest(redisTable, "key", *hkeysAllTest.toTypedArray())
+
+        val keyAfterDel = hgetAllTest(redisTable, "key")
+        val key2AfterDel = hgetAllTest(redisTable, "key2")
+
+        assertThat(keyAfterDel.keys.size).isEqualTo(0)
+        assertThat(key2AfterDel.keys.size).isEqualTo(1)
     }
 }

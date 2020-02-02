@@ -69,8 +69,19 @@ open class RedisSortedSet<V : Serializable> : RedisCache<V> {
     fun zrem(key: String, value: V): Long =
             redis.zrem(key.prependSpace(), serialize(value))
 
-    fun zremByScore(key: String, id: Int): Long =
-            redis.zremrangebyscore(key.prependSpace(), Range.create(id, id))
+    fun zremrangeByScore(key: String, score: Int): Long =
+            redis.zremrangebyscore(key.prependSpace(), Range.create(score, score))
+
+    fun zremrangebyscore(key: String, minScore: Double, maxScore: Double) =
+            redis.zremrangebyscore(key.prependSpace(), Range.create(minScore, maxScore))
+
+    fun zcard(key: String) =
+            redis.zcard(key.prependSpace())
+
+    fun zrevrange(key: String, start: Long, stop: Long) =
+            redis.zrevrangeWithScores(key.prependSpace(), start, stop)
+                    .mapNotNull { it.value?.let { _ -> it.score to deserialize(it.value) } }
+                    .toMap()
 
 
     class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :

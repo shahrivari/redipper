@@ -6,7 +6,6 @@ import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import java.io.Serializable
-import java.util.concurrent.TimeUnit
 
 open class RedisTable<V : Serializable> : RedisCache<V> {
     private val loader: ((String) -> Map<String, V>)?
@@ -82,8 +81,8 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
         }.toMap()
     }
 
-    fun hdel(key: String, field: String) =
-            redis.hdel(key.prependSpace(), field.toByteArray())
+    fun hdel(key: String, vararg field: String) =
+            redis.hdel(key.prependSpace(), *field.map { it.toByteArray() }.toTypedArray())
 
     fun hexists(key: String, field: String) =
             redis.hexists(key.prependSpace(), field.toByteArray())
