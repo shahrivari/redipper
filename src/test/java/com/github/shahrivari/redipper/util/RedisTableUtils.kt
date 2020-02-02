@@ -13,8 +13,8 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
     fun <V : Serializable> hmsetTest(redisCache: RedisTable<V>, key: String, fieldValue: Map<String, V?>) =
             redisCache.hmset(key, fieldValue)
 
-    fun <V : Serializable> hdelTest(redisCache: RedisTable<V>, key: String, field: String): Long? =
-            redisCache.hdel(key, field)
+    fun <V : Serializable> hdelTest(redisCache: RedisTable<V>, key: String, vararg field: String) =
+            redisCache.hdel(key, *field)
 
     fun <V : Serializable> hlenTest(redisCache: RedisTable<V>, key: String, field: String): Long? =
             redisCache.hlen(key)
@@ -30,17 +30,20 @@ interface RedisTableUtils : AppTestUtils, RedisCacheUtils {
 
     fun <V : Serializable> hgetAllTest(redisCache: RedisTable<V>, key: String) =
             redisCache.hgetAll(key)
+
+    fun <V : Serializable> hkeysAllTest(redisCache: RedisTable<V>, key: String) =
+            redisCache.hkeys(key)
 }
 
 inline fun <reified V : Serializable> RedisTableUtils.buildRedisTableTest(space: String = randomName,
                                                                           forceSpace: Boolean = false,
                                                                           duration: Long = 1,
-                                                                          unit: TimeUnit = TimeUnit.MINUTES,
+                                                                          timeUnit: TimeUnit = TimeUnit.MINUTES,
                                                                           noinline loader: ((String) -> Map<String, V>)? = null,
                                                                           vararg encoder: Encoder): RedisTable<V> {
     val builder =
             RedisTable.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
-                    .withTtl(duration, unit)
+                    .withTtl(duration, timeUnit)
                     .withEncoder(*encoder)
 
     if (loader != null)
