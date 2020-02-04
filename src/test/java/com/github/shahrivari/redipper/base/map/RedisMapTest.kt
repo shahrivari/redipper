@@ -194,4 +194,29 @@ internal class RedisMapTest : RedisMapUtils {
         setTest(mapTest, key, "value2")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
+
+    @Test
+    internal fun `clear all map`() {
+        val mapTest = buildRedisMapTest<String>(duration = 40, unit = TimeUnit.SECONDS)
+        val key = "key"
+        mapTest.set(key, key)
+        assertThat(mapTest.keys()).containsExactly(key)
+        mapTest.clear()
+        assertThat(mapTest.keys()).isEmpty()
+    }
+
+    @Test
+    internal fun `enumerate keys`() {
+        val mapTest = buildRedisMapTest<String>(duration = 40, unit = TimeUnit.SECONDS)
+        assertThat(mapTest.keys()).isEmpty()
+        val key = "key"
+        mapTest.set(key, key)
+        assertThat(mapTest.keys()).containsExactly(key)
+
+        mapTest.set(key, key)
+        assertThat(mapTest.keys()).containsExactly(key)
+
+        mapTest.set(key + key, key)
+        assertThat(mapTest.keys()).containsExactly(key, key + key)
+    }
 }

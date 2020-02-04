@@ -94,6 +94,11 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
     fun removeTtl(key: String) =
             redis.set(key.prependSpace(), redis.get(key.prependSpace()))
 
+    fun keys() =
+            redis.keys("$space*".toByteArray()).map { String(it).stripSpace() }
+
+    fun clear() =
+            keys().forEach { del(it) }
 
     class Builder<V : Serializable>(config: RedisConfig,
                                     space: String,

@@ -11,7 +11,7 @@ import java.io.Serializable
 
 
 abstract class RedisCache<V : Serializable> : AutoCloseable {
-    private val space: String
+    protected val space: String
     protected val ttlSeconds: Long
     private val serializer: Serializer<V>
     private val encoder: Encoder?
@@ -72,6 +72,8 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
     internal fun getTtl(key: String): Long? = redis.ttl(key.prependSpace())
 
     internal fun String.prependSpace() = "$space:$this".toByteArray()
+
+    internal fun String.stripSpace() = this.substring("$space:".length)
 
     override fun close() = redis.close()
 }
