@@ -12,11 +12,17 @@ import io.lettuce.core.cluster.RedisClusterClient
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection
 import io.lettuce.core.codec.ByteArrayCodec
 import io.lettuce.core.resource.DefaultClientResources
+import io.lettuce.core.resource.DefaultEventLoopGroupProvider
 import mu.KotlinLogging
 import java.util.*
 
 abstract class RedisDaoFactory {
     private val logger = KotlinLogging.logger {}
+    private val clientResources = DefaultClientResources.builder()
+            .ioThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
+            .computationThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
+            .eventLoopGroupProvider(DefaultEventLoopGroupProvider(DefaultClientResources.MIN_IO_THREADS))
+            .build()
 
     companion object {
         protected val clients = Collections.synchronizedMap(mutableMapOf<String, AbstractRedisClient>())
@@ -40,12 +46,7 @@ abstract class RedisDaoFactory {
             activeCount.add(redisURI.signature)
             val redisClient =
                     clients.getOrPut(redisURI.signature) {
-                        val resource = DefaultClientResources.builder()
-                                .ioThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
-                                .computationThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
-                                .build()
-
-                        val cli = RedisClient.create(resource, redisURI)
+                        val cli = RedisClient.create(clientResources, redisURI)
                         // ToDo Amin: fill options
                         cli.options = ClientOptions.builder()
                                 .autoReconnect(true)
