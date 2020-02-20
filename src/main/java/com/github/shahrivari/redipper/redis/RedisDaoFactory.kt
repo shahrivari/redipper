@@ -18,10 +18,17 @@ import java.util.*
 
 abstract class RedisDaoFactory {
     private val logger = KotlinLogging.logger {}
+
     private val clientResources = DefaultClientResources.builder()
             .ioThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
             .computationThreadPoolSize(DefaultClientResources.MIN_IO_THREADS)
             .eventLoopGroupProvider(DefaultEventLoopGroupProvider(DefaultClientResources.MIN_IO_THREADS))
+            .build()
+
+    private val options = ClusterClientOptions.builder()
+            .autoReconnect(true)
+            .pingBeforeActivateConnection(true)
+            .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
             .build()
 
     companion object {
@@ -46,11 +53,7 @@ abstract class RedisDaoFactory {
             val redisClient =
                     clients.getOrPut(redisURI.signature) {
                         val cli = RedisClient.create(clientResources, redisURI)
-                        // ToDo Amin: fill options
-                        cli.options = ClientOptions.builder()
-                                .autoReconnect(true)
-                                .pingBeforeActivateConnection(true)
-                                .build()
+                        cli.options = options
                         return@getOrPut cli
                     } as RedisClient
 
@@ -73,11 +76,7 @@ abstract class RedisDaoFactory {
             val redisClient =
                     clients.getOrPut(redisURIs.signature) {
                         val cli = RedisClusterClient.create(clientResources, redisURIs)
-                        // ToDo Amin: fill options
-                        cli.setOptions(ClusterClientOptions.builder()
-                                               .autoReconnect(true)
-                                               .pingBeforeActivateConnection(true)
-                                               .build())
+                        cli.setOptions(options)
                         return@getOrPut cli
                     } as RedisClusterClient
 
