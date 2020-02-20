@@ -37,7 +37,6 @@ abstract class RedisDaoFactory {
                 clients.remove(config.uriSignature)
             }
         }
-
     }
 
     protected fun create(redisURI: RedisURI,
@@ -73,7 +72,7 @@ abstract class RedisDaoFactory {
             activeCount.add(redisURIs.signature)
             val redisClient =
                     clients.getOrPut(redisURIs.signature) {
-                        val cli = RedisClusterClient.create(redisURIs)
+                        val cli = RedisClusterClient.create(clientResources, redisURIs)
                         // ToDo Amin: fill options
                         cli.setOptions(ClusterClientOptions.builder()
                                                .autoReconnect(true)
