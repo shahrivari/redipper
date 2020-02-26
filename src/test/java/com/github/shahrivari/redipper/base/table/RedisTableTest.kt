@@ -193,4 +193,10 @@ internal class RedisTableTest : RedisTableUtils {
         assertThat(keyAfterDel.keys.size).isEqualTo(0)
         assertThat(key2AfterDel.keys.size).isEqualTo(1)
     }
+
+    @Test
+    internal fun `hmset should not throws exception when map is empty`() {
+        val redisTable = buildRedisTableTest<Int>("alaki")
+        hmsetTest(redisTable, "key", emptyMap())
+    }
 }

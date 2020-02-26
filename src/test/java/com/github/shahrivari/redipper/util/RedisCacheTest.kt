@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier
 class RedisCacheTest : BeforeEachCallback {
     override fun beforeEach(context: ExtensionContext) {
 
+        // TODO MoHoLiaghat: not work on JDK 12. should be change ASAP
         val field = RedisCache::class.java.getDeclaredField("spaceGroup")
         val modifiersField = Field::class.java.getDeclaredField("modifiers")
 
