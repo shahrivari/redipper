@@ -44,6 +44,8 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
     }
 
     fun hmset(key: String, fieldValue: Map<String, V?>) {
+        if (fieldValue.isEmpty()) return
+
         val bytes = fieldValue.map {
             it.key.toByteArray() to (it.value?.let { serialize(it) } ?: EMPTY_BYTES)
         }.toMap()
