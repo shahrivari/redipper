@@ -15,7 +15,7 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 
 ### Add dependency
 
-#### 1.Add the JitPack repository to your project:
+#### 1.Add JitPack repository to your project:
 
 ##### *pom.xml* file:
 ```xml
@@ -25,7 +25,7 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 </repository>
 ```
 
-#### 2. Add the dependency
+#### 2. Add dependency
 
 ##### *pom.xml* file:
 ```xml
@@ -40,16 +40,30 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 Create object of any classes on your demand.
 
 ```kotlin
-val redisCache = RedisMap.Builder(your_space, Person::class.java)
+val personCache = RedisMap.newBuilder<Person>(redisConfig, "person")
             .withTtl(10, TimeUnit.SECONDS)
+            .withLoader { getPerson() }
             .build()
 
-redisCache.set(person.id.toString(), person)
+personCache.set(person.id.toString(), personInstance)
 
-redisCache.get(person.id.toString())            
+personCache.get(person.id.toString())            
 ```
 
-_If you have specific serializer, you can pass it to redisWrapper._
+_If you have specific serializer, you can pass it to redisWrapper as described below_:
+
+```kotlin
+val studentCache = RedisMap.newBuilder<Student>(redisConfig, "student")
+            .withTtl(10, TimeUnit.SECONDS)
+            .withLoader { getStudent() }
+            .withSerializer(StudentSerializer.build())
+            .build()
+
+studentCache.set(student.id.toString(), studentInstance)
+
+studentCache.get(student.id.toString())            
+```
+
 
 Most of this code is written by [Mohammad Hossein Liaghat](https://github.com/MoHoLiaghat) and
  Mohammad Amin Badiezadegan.
