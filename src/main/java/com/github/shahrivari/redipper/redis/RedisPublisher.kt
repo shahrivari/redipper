@@ -2,7 +2,7 @@ package com.github.shahrivari.redipper.redis
 
 import com.github.shahrivari.redipper.config.RedisConfig
 
-class RedisPublisher(private val host: String, private val port: Int) {
+class RedisPublisher(private val config: RedisConfig) {
 
     private lateinit var redis: RedisPubSubDao
 
@@ -11,10 +11,7 @@ class RedisPublisher(private val host: String, private val port: Int) {
     }
 
     private fun createPublisherRedisDao() {
-        redis = RedisPubSubDao.create(RedisConfig().apply {
-            ipList = setOf(host)
-            port = this@RedisPublisher.port
-        })
+        redis = RedisPubSubDao.create(config)
     }
 
     fun publish(topic: String, msg: ByteArray) {
