@@ -75,5 +75,10 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
 
     internal fun String.stripSpace() = this.substring("$space:".length)
 
+    fun invalidateWholeCache() {
+        spaceGroup.clear()
+        redis.flushall()
+    }
+
     override fun close() = redis.close()
 }
