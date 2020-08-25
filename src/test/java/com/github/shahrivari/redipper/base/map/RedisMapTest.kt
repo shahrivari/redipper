@@ -219,4 +219,37 @@ internal class RedisMapTest : RedisMapUtils {
         mapTest.set(key + key, key)
         assertThat(mapTest.keys()).containsExactly(key, key + key)
     }
+
+    @Test
+    internal fun `invalidate whole cache blocking server`() {
+        val mapTest =
+                buildRedisMapTest<String>(duration = 1, unit = TimeUnit.MINUTES, space = "abri")
+        assertThat(mapTest.keys()).isEmpty()
+
+        val key = "key"
+
+        repeat(5) { mapTest.set(key + it, key + it) }
+
+        repeat(5) {
+            val get = mapTest.get(key + it)
+            assertThat(get).isEqualTo(key + it)
+        }
+
+        assertThrows<IllegalArgumentException> {
+            buildRedisMapTest<String>(duration = 1, unit = TimeUnit.MINUTES, space = "abri")
+        }
+
+        mapTest.invalidateWholeCache()
+
+        assertThat(mapTest.keys()).isEmpty()
+
+        val redis = buildRedisMapTest<String>(duration = 1, unit = TimeUnit.MINUTES, space = "abri")
+
+        repeat(5) { redis.set(key + it, key + it) }
+
+        repeat(5) {
+            val get = redis.get(key + it)
+            assertThat(get).isEqualTo(key + it)
+        }
+    }
 }
