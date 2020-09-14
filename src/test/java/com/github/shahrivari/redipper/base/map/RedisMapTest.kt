@@ -1,5 +1,6 @@
 package com.github.shahrivari.redipper.base.map
 
+import com.github.shahrivari.redipper.base.RedisCache
 import com.github.shahrivari.redipper.base.encoding.encryption.AesEncoder
 import com.github.shahrivari.redipper.util.*
 import org.assertj.core.api.Assertions.assertThat
@@ -239,7 +240,7 @@ internal class RedisMapTest : RedisMapUtils {
             buildRedisMapTest<String>(duration = 1, unit = TimeUnit.MINUTES, space = "abri")
         }
 
-        mapTest.invalidateWholeCache()
+        RedisCache.clearWholeRedis(RedisTest.redisConfig)
 
         assertThat(mapTest.keys()).isEmpty()
 

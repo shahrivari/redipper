@@ -1,6 +1,7 @@
 package com.github.shahrivari.redipper.base
 
 import com.github.shahrivari.redipper.base.encoding.Encoder
+import com.github.shahrivari.redipper.base.map.RedisMap
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
 import com.github.shahrivari.redipper.redis.RedisCacheAPI
@@ -40,6 +41,13 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
             require(!spaceGroup.contains(space))
             { "This space exists:$space. forceSpace should be set true if you want set duplicate space" }
         }
+
+        fun clearWholeRedis(config: RedisConfig) {
+            spaceGroup.clear()
+
+            // to clear whole redis
+            RedisMap.newBuilder<Int>(config, "reset", true).build().apply { redis.flushall() }
+        }
     }
 
     private fun createCacheRedisDao() {
@@ -74,11 +82,6 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
     internal fun String.prependSpace() = "$space:$this".toByteArray()
 
     internal fun String.stripSpace() = this.substring("$space:".length)
-
-    fun invalidateWholeCache() {
-        spaceGroup.clear()
-        redis.flushall()
-    }
 
     override fun close() = redis.close()
 }
