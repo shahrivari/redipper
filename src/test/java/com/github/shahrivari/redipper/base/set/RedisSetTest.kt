@@ -18,8 +18,8 @@ internal class RedisSetTest : RedisSetUtils {
         val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        saddTest(userCache, person.id.toString(), person)
-        val user = smembersTest(userCache, person.id.toString()).first()
+        userCache.sadd(person.id.toString(), person)
+        val user = userCache.smembers(person.id.toString()).first()
 
         assertNotNull(user)
         assertThat(person.id).isEqualTo(user.id)
@@ -32,15 +32,15 @@ internal class RedisSetTest : RedisSetUtils {
         val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        saddTest(userCache, person.id.toString(), person)
-        val p1 = smembersTest(userCache, person.id.toString())
+        userCache.sadd(person.id.toString(), person)
+        val p1 = userCache.smembers(person.id.toString()).toList()
 
         assertThat(p1.size).isEqualTo(1)
         assertThat(p1[0].name).isEqualTo(person.name)
         assertThat(p1[0].phone).isEqualTo(person.phone)
 
-        sremTest(userCache, person.id.toString(), person)
-        val p2 = smembersTest(userCache, person.id.toString())
+        userCache.srem(person.id.toString(), person)
+        val p2 = userCache.smembers(person.id.toString())
 
         assertThat(p2.size).isEqualTo(0)
     }
@@ -51,17 +51,17 @@ internal class RedisSetTest : RedisSetUtils {
         val userA = createPerson()
         val userB = createPerson()
 
-        saddTest(userCache, userA.id.toString(), userA)
-        saddTest(userCache, userA.id.toString(), userB)
+        userCache.sadd(userA.id.toString(), userA)
+        userCache.sadd(userA.id.toString(), userB)
 
-        val user = smembersTest(userCache, userA.id.toString())
+        val user = userCache.smembers(userA.id.toString())
 
         assertNotNull(user)
         assertThat(user.size).isEqualTo(2)
 
-        sremTest(userCache, userA.id.toString(), userB)
+        userCache.srem(userA.id.toString(), userB)
 
-        val user1 = smembersTest(userCache, userA.id.toString())
+        val user1 = userCache.smembers(userA.id.toString())
 
         assertNotNull(user1)
         assertThat(user1.size).isEqualTo(1)
@@ -94,13 +94,13 @@ internal class RedisSetTest : RedisSetUtils {
         val mapTest = buildRedisSetTest<String>(duration = 40, unit = TimeUnit.SECONDS)
         val key = "key"
 
-        saddTest(mapTest, key, "value1")
+        mapTest.sadd(key, "value1")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
 
         Thread.sleep(2000)
         assertThat(mapTest.getTtl(key)).isEqualTo(38)
 
-        saddTest(mapTest, key, "value2")
+        mapTest.sadd(key, "value2")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
 
@@ -119,12 +119,12 @@ internal class RedisSetTest : RedisSetUtils {
         val userCache = buildRedisSetTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        saddTest(userCache, person.id.toString(), person)
-        val members = smembersTest(userCache, person.id.toString())
+        userCache.sadd(person.id.toString(), person)
+        val members = userCache.smembers(person.id.toString())
         assertThat(members.size).isEqualTo(1)
 
-        delTest(userCache, person.id.toString())
-        val user = smembersTest(userCache, person.id.toString())
+        userCache.del(person.id.toString())
+        val user = userCache.smembers(person.id.toString())
         assertThat(user.size).isEqualTo(0)
     }
 }

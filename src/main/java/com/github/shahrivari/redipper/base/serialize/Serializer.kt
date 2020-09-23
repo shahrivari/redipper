@@ -26,3 +26,9 @@ class LongSerializer : Serializer<Long> {
 
     override fun deserialize(bytes: ByteArray) = String(bytes).toLongOrNull()
 }
+
+class ByteArraySerializer : Serializer<ByteArray> {
+    override fun serialize(value: ByteArray) = value
+
+    override fun deserialize(bytes: ByteArray) = bytes
+}

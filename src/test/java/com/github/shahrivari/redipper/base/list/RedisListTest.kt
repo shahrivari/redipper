@@ -15,8 +15,8 @@ internal class RedisListTest : RedisListUtils {
         val redisList = buildRedisListTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        lpushTest(redisList, person.id.toString(), person)
-        val getPerson = lpopTest(redisList, person.id.toString())
+        redisList.lpush(person.id.toString(), person)
+        val getPerson = redisList.lpop(person.id.toString())
 
         assertThat(getPerson).isNotNull
         assertThat(person.name).isEqualTo(getPerson!!.name)
@@ -31,14 +31,14 @@ internal class RedisListTest : RedisListUtils {
         val key = "testList"
         repeat((1..5).count()) {
             val person = createPerson()
-            lpushTest(redisList, key, person)
+            redisList.lpush(key, person)
         }
 
-        val getPersons = getAllTest(redisList, key)
+        val getPersons = redisList.getAll(key)
 
         assertThat(getPersons).isNotNull
         assertThat(getPersons.size).isEqualTo(5)
-        assertThat(llenTest(redisList, key)).isEqualTo(5)
+        assertThat(redisList.llen(key)).isEqualTo(5)
     }
 
     @Test
@@ -48,18 +48,18 @@ internal class RedisListTest : RedisListUtils {
         val key = "testList"
         repeat((1..5).count()) {
             val person = createPerson()
-            lpushTest(redisList, key, person)
+            redisList.lpush(key, person)
         }
 
-        val getPersons = getAllTest(redisList, key)
+        val getPersons = redisList.getAll(key)
 
-        val len = llenTest(redisList, key)
+        val len = redisList.llen(key)
         assertThat(getPersons).isNotNull
         assertThat(getPersons.size).isEqualTo(5)
         assertThat(len).isEqualTo(5)
 
-        rpopTest(redisList, key)
-        assertThat(llenTest(redisList, key)).isEqualTo(4)
+        redisList.rpop(key)
+        assertThat(redisList.llen(key)).isEqualTo(4)
     }
 
     @Test
@@ -84,13 +84,13 @@ internal class RedisListTest : RedisListUtils {
         val mapTest = buildRedisListTest<String>(duration = 40, unit = TimeUnit.SECONDS)
         val key = "key"
 
-        lpushTest(mapTest, key, "value1")
+        mapTest.lpush(key, "value1")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
 
         Thread.sleep(2000)
         assertThat(mapTest.getTtl(key)).isEqualTo(38)
 
-        lpushTest(mapTest, key, "value2")
+        mapTest.lpush(key, "value2")
         assertThat(mapTest.getTtl(key)).isEqualTo(40)
     }
 }

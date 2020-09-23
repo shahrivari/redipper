@@ -23,8 +23,8 @@ internal class RedisTableTest : RedisTableUtils {
         val person = createPerson()
 
         val field = "test"
-        hsetTest(redisTable, person.id.toString(), field, person)
-        val getPerson = hmgetTest(redisTable, person.id.toString(), field)
+        redisTable.hset(person.id.toString(), field, person)
+        val getPerson = redisTable.hmget(person.id.toString(), field)
 
         assertThat(getPerson.values.toList().first()!!.phone).isEqualTo(person.phone)
         assertThat(getPerson.values.toList().first()!!.id).isEqualTo(person.id)
@@ -48,9 +48,9 @@ internal class RedisTableTest : RedisTableUtils {
         val person = createPerson()
 
         val field = "test"
-        hsetTest(redisTable, person.id.toString(), field, person)
+        redisTable.hset(person.id.toString(), field, person)
 
-        val getPerson = hmgetTest(redisTable, person.id.toString(), field)
+        val getPerson = redisTable.hmget(person.id.toString(), field)
 
         assertThat(getPerson.values.toList().first()!!.phone).isEqualTo(person.phone)
         assertThat(getPerson.values.toList().first()!!.id).isEqualTo(person.id)
@@ -77,30 +77,32 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("Expire of hash not supported in jedis mock.")
     internal fun `set value with ttl twice`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
+                                                                     timeUnit = TimeUnit.SECONDS)
 
         val person = createPerson()
         val field = "test"
 
-        hsetTest(redisTable, person.id.toString(), field, person)
+        redisTable.hset(person.id.toString(), field, person)
         assertThat(redisTable.getTtl(person.id.toString())).isEqualTo(40)
 
         Thread.sleep(5000)
         assertThat(redisTable.getTtl(person.id.toString())).isEqualTo(35)
 
-        hsetTest(redisTable, person.id.toString(), field, person)
+        redisTable.hset(person.id.toString(), field, person)
         assertThat(redisTable.getTtl(person.id.toString())).isEqualTo(40)
     }
 
     @Test
     @Disabled("hlen not support")
     internal fun `should eliminate null values`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
+                                                                     timeUnit = TimeUnit.SECONDS)
         val person = createPerson()
         val field = "test"
 
-        hsetTest(redisTable, person.id.toString(), field, person)
-        val map = hmgetTest(redisTable, person.id.toString(), field, "alaki")
+        redisTable.hset(person.id.toString(), field, person)
+        val map = redisTable.hmget(person.id.toString(), field, "alaki")
         assertThat(map.size).isEqualTo(1)
     }
 
@@ -111,7 +113,7 @@ internal class RedisTableTest : RedisTableUtils {
         val userCache = buildRedisTableTest(loader = { result })
 
         val user = createPerson()
-        val test = hgetTest(userCache, user.id.toString(), "test")
+        val test = userCache.hget(user.id.toString(), "test")
 
         assertNotNull(test)
         assertThat(test.id).isEqualTo(result.values.first().id)
@@ -122,7 +124,8 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     @Disabled("hlen not support")
     internal fun `should eliminate null values when get all fields`() {
-        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40, timeUnit = TimeUnit.SECONDS)
+        val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
+                                                                     timeUnit = TimeUnit.SECONDS)
         val key = "alaki"
 
         val p1 = createPerson()
@@ -136,17 +139,17 @@ internal class RedisTableTest : RedisTableUtils {
         val f4 = "test4"
         val f5 = "test5"
 
-        hsetTest(redisTable, key, f1, p1)
-        hsetTest(redisTable, key, f2, p2)
-        hsetTest(redisTable, key, f3, p3)
+        redisTable.hset(key, f1, p1)
+        redisTable.hset(key, f2, p2)
+        redisTable.hset(key, f3, p3)
 
-        val map = hgetAllTest(redisTable, key)
+        val map = redisTable.hgetAll(key)
         assertThat(map.size).isEqualTo(3)
 
-        hsetTest(redisTable, key, f4, p4)
-        hsetTest(redisTable, key, f5, null)
+        redisTable.hset(key, f4, p4)
+        redisTable.hset(key, f5, null)
 
-        val map2 = hgetAllTest(redisTable, key)
+        val map2 = redisTable.hgetAll(key)
         assertThat(map2.size).isEqualTo(5)
     }
 
@@ -156,14 +159,14 @@ internal class RedisTableTest : RedisTableUtils {
         val redisTable = buildRedisTableTest<Int>()
 
         val fieldValue = mapOf("f1" to 1, "f2" to 2, "f3" to 3, "f5" to null)
-        hmsetTest(redisTable, "key", fieldValue)
+        redisTable.hmset("key", fieldValue)
 
-        val map = hgetAllTest(redisTable, "key")
+        val map = redisTable.hgetAll("key")
         assertThat(map.size).isEqualTo(4)
     }
 
-    @Disabled("hlen and hdel(multiple delete) not support")
     @Test
+    @Disabled("hlen and hdel(multiple delete) not support")
     internal fun `all fields should be delete from cache`() {
         val redisTable = buildRedisTableTest<Int>()
         val fieldValue = mapOf("f1" to 1,
@@ -174,21 +177,21 @@ internal class RedisTableTest : RedisTableUtils {
                                "f7" to 7,
                                "f8" to null)
 
-        hmsetTest(redisTable, "key", fieldValue)
+        redisTable.hmset("key", fieldValue)
 
-        hsetTest(redisTable, "key2", "f1", 1)
+        redisTable.hset("key2", "f1", 1)
 
-        val key = hgetAllTest(redisTable, "key")
-        val key2 = hgetAllTest(redisTable, "key2")
+        val key = redisTable.hgetAll("key")
+        val key2 = redisTable.hgetAll("key2")
 
         assertThat(key.keys.size).isEqualTo(7)
         assertThat(key2.keys.size).isEqualTo(1)
 
-        val hkeysAllTest = hkeysAllTest(redisTable, "key")
-        hdelTest(redisTable, "key", *hkeysAllTest.toTypedArray())
+        val hkeysAllTest = redisTable.hkeys("key")
+        redisTable.hdel("key", *hkeysAllTest.toTypedArray())
 
-        val keyAfterDel = hgetAllTest(redisTable, "key")
-        val key2AfterDel = hgetAllTest(redisTable, "key2")
+        val keyAfterDel = redisTable.hgetAll("key")
+        val key2AfterDel = redisTable.hgetAll("key2")
 
         assertThat(keyAfterDel.keys.size).isEqualTo(0)
         assertThat(key2AfterDel.keys.size).isEqualTo(1)
@@ -197,6 +200,6 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     internal fun `hmset should not throws exception when map is empty`() {
         val redisTable = buildRedisTableTest<Int>("alaki")
-        hmsetTest(redisTable, "key", emptyMap())
+        redisTable.hmset("key", emptyMap())
     }
 }
