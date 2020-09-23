@@ -13,7 +13,7 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 * Automatic serialization of objects.
 * Various encoders for compression and encryption.
 
-### Add dependency
+### Get started
 
 #### 1.Add JitPack repository to your project:
 
@@ -32,11 +32,11 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 <dependency>
     <groupId>com.github.shahrivari</groupId>
     <artifactId>redipper</artifactId>
-    <version>1.0</version>
+    <version>v1.22</version>
 </dependency>
 ```
 
-### Get Started
+### Usage
 Create object of any classes on your demand.
 
 ```kotlin

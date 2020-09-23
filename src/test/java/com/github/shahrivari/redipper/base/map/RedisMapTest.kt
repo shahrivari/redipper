@@ -39,8 +39,8 @@ internal class RedisMapTest : RedisMapUtils {
         val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        setTest(userCache, person.id.toString(), person)
-        val test = getTest(userCache, person.id.toString())
+        userCache.set(person.id.toString(), person)
+        val test = userCache.get(person.id.toString())
 
         assertNotNull(test)
         assertThat(test.id).isEqualTo(person.id)
@@ -55,15 +55,15 @@ internal class RedisMapTest : RedisMapUtils {
                 (1..10).map { if (it % 2 == 0) createPerson() else null }
                         .associateBy { it?.id?.toString() ?: Random.nextLong().toString() }
 
-        msetTest(userCache, original)
-        val map = mgetTest(userCache, original.keys)
+        userCache.mset(original)
+        val map = userCache.mget(original.keys)
 
         map.forEach { (key, value) ->
             assertThat(value).isEqualTo(original[key])
         }
 
         val nonExisting = (1..5).map { Random.nextLong().toString() }
-        assertTrue(mgetTest(userCache, nonExisting).isEmpty())
+        assertTrue(userCache.mget(nonExisting).isEmpty())
     }
 
     @Test
@@ -76,8 +76,8 @@ internal class RedisMapTest : RedisMapUtils {
             userList[user.id.toString()] = user
         }
 
-        msetTest(userCache, userList)
-        val map = mgetTest(userCache, userList.keys)
+        userCache.mset(userList)
+        val map = userCache.mget(userList.keys)
 
         map.forEach { (key, value) ->
             assertThat(value?.name).isEqualTo(userList[key]!!.name)
@@ -91,10 +91,10 @@ internal class RedisMapTest : RedisMapUtils {
         val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
         val person = createPerson()
 
-        setTest(userCache, person.id.toString(), person)
-        delTest(userCache, person.id.toString())
+        userCache.set(person.id.toString(), person)
+        userCache.del(person.id.toString())
 
-        val test = getTest(userCache, person.id.toString())
+        val test = userCache.get(person.id.toString())
         assertThat(test).isEqualTo(null)
     }
 
@@ -103,7 +103,7 @@ internal class RedisMapTest : RedisMapUtils {
         val userCache = buildRedisMapTest<RedisCacheUtils.Person>()
         val user = createPerson()
 
-        val test = getTest(userCache, user.id.toString())
+        val test = userCache.get(user.id.toString())
         assertNull(test)
     }
 
@@ -113,7 +113,7 @@ internal class RedisMapTest : RedisMapUtils {
         val userCache = buildRedisMapTest(loader = { result })
 
         val user = createPerson()
-        val test = getTest(userCache, user.id.toString())
+        val test = userCache.get(user.id.toString())
 
         assertNotNull(test)
         assertThat(test.id).isEqualTo(result.id)
@@ -130,7 +130,7 @@ internal class RedisMapTest : RedisMapUtils {
                 buildRedisMapTest(loader = { result }, encoder = *arrayOf(aes128))
 
         val user = createPerson()
-        val test = getTest(userCache, user.id.toString())
+        val test = userCache.get(user.id.toString())
 
         assertNotNull(test)
         assertThat(test.id).isEqualTo(result.id)
@@ -183,17 +183,17 @@ internal class RedisMapTest : RedisMapUtils {
 
     @Test
     internal fun `set value with ttl twice`() {
-        val mapTest = buildRedisMapTest<String>(duration = 40, unit = TimeUnit.SECONDS)
+        val redisMap = buildRedisMapTest<String>(duration = 40, unit = TimeUnit.SECONDS)
         val key = "key"
 
-        setTest(mapTest, key, "value1")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
+        redisMap.set(key, "value1")
+        assertThat(redisMap.getTtl(key)).isEqualTo(40)
 
         Thread.sleep(2000)
-        assertThat(mapTest.getTtl(key)).isEqualTo(38)
+        assertThat(redisMap.getTtl(key)).isEqualTo(38)
 
-        setTest(mapTest, key, "value2")
-        assertThat(mapTest.getTtl(key)).isEqualTo(40)
+        redisMap.set(key, "value2")
+        assertThat(redisMap.getTtl(key)).isEqualTo(40)
     }
 
     @Test
@@ -252,5 +252,19 @@ internal class RedisMapTest : RedisMapUtils {
             val get = redis.get(key + it)
             assertThat(get).isEqualTo(key + it)
         }
+    }
+
+    @Test
+    internal fun `should be accept byteArray as value`() {
+        val redisMap = buildRedisMapTest<ByteArray>("abri")
+        val key = "key"
+        val value = "test"
+
+        redisMap.set(key, value.toByteArray())
+        val bytes = redisMap.get(key)
+
+        checkNotNull(bytes)
+
+        assertThat(String(bytes)).isEqualTo(value)
     }
 }

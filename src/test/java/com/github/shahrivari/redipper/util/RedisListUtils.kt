@@ -5,29 +5,14 @@ import com.github.shahrivari.redipper.base.list.RedisList
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
-interface RedisListUtils : AppTestUtils, RedisCacheUtils {
-
-    fun <V : Serializable> lpushTest(redisCache: RedisList<V>, key: String, value: V) =
-            redisCache.lpush(key, value)
-
-    fun <V : Serializable> lpopTest(redisCache: RedisList<V>, key: String): V? =
-            redisCache.lpop(key)
-
-    fun <V : Serializable> rpopTest(redisCache: RedisList<V>, key: String): V? =
-            redisCache.rpop(key)
-
-    fun <V : Serializable> llenTest(redisCache: RedisList<V>, key: String): Long =
-            redisCache.llen(key)
-
-    fun <V : Serializable> getAllTest(redisCache: RedisList<V>, key: String): List<V?> =
-            redisCache.getAll(key)
-}
+interface RedisListUtils : AppTestUtils, RedisCacheUtils
 
 inline fun <reified V : Serializable> RedisListUtils.buildRedisListTest(space: String = randomName,
                                                                         forceSpace: Boolean = false,
                                                                         duration: Long = 1,
                                                                         unit: TimeUnit = TimeUnit.MINUTES,
-                                                                        vararg encoder: Encoder): RedisList<V> {
+                                                                        vararg encoder: Encoder)
+        : RedisList<V> {
     return RedisList.newBuilder<V>(RedisTest.redisConfig, space, forceSpace)
             .withTtl(duration, unit)
             .withEncoder(*encoder)

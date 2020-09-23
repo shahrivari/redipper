@@ -18,15 +18,17 @@ internal class RedisSortedSetTest : RedisSortedSetUtils {
     internal fun `set and get correctly`() {
         val set = buildRedisSortedSetTest<Int>()
 
-        zaddTest(set, 1.toString(), Pair(1, 1111))
-        zaddTest(set, 1.toString(), Pair(4, 2222))
-        zaddTest(set, 1.toString(), Pair(3, 3333))
-        zaddTest(set, 1.toString(), Pair(2, 4444))
+        set.apply {
+            zadd(1.toString(), Pair(1.toDouble(), 1111))
+            zadd(1.toString(), Pair(4.toDouble(), 2222))
+            zadd(1.toString(), Pair(3.toDouble(), 3333))
+            zadd(1.toString(), Pair(2.toDouble(), 4444))
+        }
         repeat(5) {
-            zaddTest(set, 1.toString(), Pair(5, 5555))
+            set.zadd(1.toString(), Pair(5.toDouble(), 5555))
         }
 
-        val list = zrangeTest(set, 1.toString(), 0, -1)
+        val list = set.zrange(1.toString(), 0, -1)
         assertThat(list.size).isEqualTo(5)
     }
 }

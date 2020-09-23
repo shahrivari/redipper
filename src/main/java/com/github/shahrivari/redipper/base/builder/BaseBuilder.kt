@@ -35,6 +35,7 @@ abstract class BaseBuilder<T, V : Serializable>(protected val config: RedisConfi
             Integer::class.java -> IntSerializer() as Serializer<V>
             java.lang.Long::class.java -> LongSerializer() as Serializer<V>
             String::class.java -> StringSerializer() as Serializer<V>
+            ByteArray::class.java -> ByteArraySerializer() as Serializer<V>
             else -> GeneralSerializer(clazz)
         }
     }
