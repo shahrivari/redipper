@@ -94,6 +94,8 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
     fun hkeys(key: String) =
             redis.hkeys(key.prependSpace()).map { String(it) }
 
+    fun del(vararg key: String) =
+            redis.del(*key.map { it.prependSpace() }.toTypedArray())
 
     class Builder<V : Serializable>(config: RedisConfig,
                                     space: String,
