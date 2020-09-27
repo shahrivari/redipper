@@ -83,6 +83,8 @@ open class RedisSortedSet<V : Serializable> : RedisCache<V> {
                     .mapNotNull { it.value?.let { _ -> it.score to deserialize(it.value) } }
                     .toMap()
 
+    fun del(vararg key: String) =
+            redis.del(*key.map { it.prependSpace() }.toTypedArray())
 
     class Builder<V : Serializable>(config: RedisConfig, space: String, forceSpace: Boolean, clazz: Class<V>) :
             BaseBuilder<RedisSortedSet<V>, V>(config, space, clazz) {
