@@ -4,6 +4,8 @@ import com.github.shahrivari.redipper.base.encoding.compression.GzipEncoder
 import com.github.shahrivari.redipper.base.encoding.compression.Lz4Encoder
 import com.github.shahrivari.redipper.base.encoding.encryption.AesEmbeddedEncoder
 import com.github.shahrivari.redipper.base.encoding.encryption.AesEncoder
+import com.github.shahrivari.redipper.base.map.RedisMap
+import com.github.shahrivari.redipper.config.RedisConfig
 import com.github.shahrivari.redipper.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -201,5 +203,50 @@ internal class RedisTableTest : RedisTableUtils {
     internal fun `hmset should not throws exception when map is empty`() {
         val redisTable = buildRedisTableTest<Int>("alaki")
         redisTable.hmset("key", emptyMap())
+    }
+
+    @Test
+    internal fun `retrieve all keys`() {
+        val redisTable = buildRedisTableTest<Int>("alaki").apply {
+            hset("key1", "id", 1)
+            hset("key2", "id", 2)
+            hset("key3", "id", 3)
+        }
+
+        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
+            this.set("al", 1)
+        }
+
+        val list = redisTable.allKeys()
+        println(list)
+        assertThat(list.size).isEqualTo(3)
+
+        redisTable.apply {
+            hset("key4", "id", 4)
+            hset("key5", "id", 5)
+            hset("key6", "id", 6)
+        }
+
+        val keys = redisTable.allKeys()
+        assertThat(keys.size).isEqualTo(6)
+    }
+
+    @Test
+    internal fun `check if key exists in cache`() {
+        val redisTable = buildRedisTableTest<Int>("alaki").apply {
+            hset("key1", "id", 1)
+            hset("key2", "id", 2)
+            hset("key3", "id", 3)
+        }
+
+        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
+            this.set("bib", 1)
+        }
+
+        val ifExist = redisTable.hexists("bib")
+        assertThat(ifExist).isEqualTo(false)
+
+        val ifExist2 = redisTable.hexists("key1")
+        assertThat(ifExist2).isEqualTo(true)
     }
 }
