@@ -5,6 +5,7 @@ import com.github.shahrivari.redipper.base.builder.MapLoadingBuilder
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
+import io.lettuce.core.ScanArgs
 import java.io.Serializable
 
 open class RedisTable<V : Serializable> : RedisCache<V> {
@@ -89,13 +90,31 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
     fun hexists(key: String, field: String) =
             redis.hexists(key.prependSpace(), field.toByteArray())
 
-    fun hlen(key: String) = redis.hlen(key.prependSpace())
+    /**
+     * returns if key exists in [space]
+     */
+    fun hexists(key: String) =
+            allKeys().contains(key)
 
+    fun hlen(key: String) =
+            redis.hlen(key.prependSpace())
+
+    /**
+     * returns fields of key.
+     */
     fun hkeys(key: String) =
             redis.hkeys(key.prependSpace()).map { String(it) }
 
     fun del(vararg key: String) =
             redis.del(*key.map { it.prependSpace() }.toTypedArray())
+
+    /**
+     * returns all exist keys in [space].
+     */
+    fun allKeys() =
+            redis.scan(ScanArgs().match("$space:*")).keys
+                    .map { String(it).substringAfter("$space:") }
+
 
     class Builder<V : Serializable>(config: RedisConfig,
                                     space: String,
