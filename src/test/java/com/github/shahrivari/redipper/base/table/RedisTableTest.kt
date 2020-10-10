@@ -208,9 +208,9 @@ internal class RedisTableTest : RedisTableUtils {
     @Test
     internal fun `retrieve all keys`() {
         val redisTable = buildRedisTableTest<Int>("alaki").apply {
-            hset("key1", "id", 1)
-            hset("key2", "id", 2)
-            hset("key3", "id", 3)
+            repeat(20) {
+                hset("key$it", "id", it)
+            }
         }
 
         RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
@@ -218,17 +218,51 @@ internal class RedisTableTest : RedisTableUtils {
         }
 
         val list = redisTable.allKeys()
-        println(list)
-        assertThat(list.size).isEqualTo(3)
+        assertThat(list.size).isEqualTo(20)
 
         redisTable.apply {
-            hset("key4", "id", 4)
-            hset("key5", "id", 5)
-            hset("key6", "id", 6)
+            repeat(5) {
+                hset("key${it + 20}", "id", it + 20)
+            }
         }
 
         val keys = redisTable.allKeys()
-        assertThat(keys.size).isEqualTo(6)
+        assertThat(keys.size).isEqualTo(25)
+    }
+
+    @Test
+    internal fun `retrieve all keys with prefix`() {
+        val redisTable = buildRedisTableTest<Int>("alaki").apply {
+            repeat(20) {
+                hset("bib.key$it", "id", it)
+            }
+        }
+
+        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
+            this.set("al", 1)
+        }
+
+        val list = redisTable.allKeys(prefix = "bib.")
+        assertThat(list.size).isEqualTo(20)
+
+        redisTable.apply {
+            repeat(5) {
+                hset("bib.key${it + 20}", "id", it + 20)
+            }
+        }
+
+        redisTable.apply {
+            repeat(5) {
+                hset("che.key${it + 20}", "id", it + 20)
+            }
+        }
+
+        val keys = redisTable.allKeys(prefix = "bib.")
+        assertThat(keys.size).isEqualTo(25)
+
+
+        val cheKeys = redisTable.allKeys(prefix = "che.")
+        assertThat(cheKeys.size).isEqualTo(5)
     }
 
     @Test
