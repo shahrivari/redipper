@@ -5,6 +5,7 @@ import com.github.shahrivari.redipper.base.builder.LoadingBuilder
 import com.github.shahrivari.redipper.base.encoding.Encoder
 import com.github.shahrivari.redipper.base.serialize.Serializer
 import com.github.shahrivari.redipper.config.RedisConfig
+import io.lettuce.core.ScanArgs
 import java.io.Serializable
 
 open class RedisMap<V : Serializable> : RedisCache<V> {
@@ -97,8 +98,28 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
     fun keys() =
             redis.keys("$space*".toByteArray()).map { String(it).stripSpace() }
 
+    /**
+     * Returns all keys in own space matching [pattern].
+     * It's maybe block server for long time if collection is big.
+     * It's better to use [scan] method instead of [keys] method.
+     *
+     * @param pattern keys should matching this parameter.
+     */
+    fun keys(pattern: String) =
+            redis.keys("$space:$pattern*".toByteArray()).map { String(it).stripSpace() }
+
+    /**
+     * Returns all keys in own space matching [pattern].
+     * @param limit size of return list.
+     */
+    fun scan(pattern: String = "", limit: Int = 1000) =
+            redis.scan(ScanArgs().match("$space:$pattern*").limit(limit.toLong())).keys.map {
+                String(it).substringAfter("$space:$pattern")
+            }
+
     fun clear() =
             keys().forEach { del(it) }
+
 
     class Builder<V : Serializable>(config: RedisConfig,
                                     space: String,
