@@ -267,4 +267,14 @@ internal class RedisMapTest : RedisMapUtils {
 
         assertThat(String(bytes)).isEqualTo(value)
     }
+
+    @Test
+    internal fun `get all keys`() {
+        val redisMap = buildRedisMapTest<Int>("lol")
+        repeat(10) {
+            redisMap.set("$it", it)
+        }
+
+        assertThat(redisMap.keys()).containsExactly(*redisMap.scan().toTypedArray())
+    }
 }

@@ -242,7 +242,7 @@ internal class RedisTableTest : RedisTableUtils {
             this.set("al", 1)
         }
 
-        val list = redisTable.allKeys(prefix = "bib.")
+        val list = redisTable.allKeys(pattern = "bib.")
         assertThat(list.size).isEqualTo(20)
 
         redisTable.apply {
@@ -257,11 +257,11 @@ internal class RedisTableTest : RedisTableUtils {
             }
         }
 
-        val keys = redisTable.allKeys(prefix = "bib.")
+        val keys = redisTable.allKeys(pattern = "bib.")
         assertThat(keys.size).isEqualTo(25)
 
 
-        val cheKeys = redisTable.allKeys(prefix = "che.")
+        val cheKeys = redisTable.allKeys(pattern = "che.")
         assertThat(cheKeys.size).isEqualTo(5)
     }
 
