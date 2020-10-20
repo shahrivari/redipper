@@ -111,8 +111,8 @@ open class RedisTable<V : Serializable> : RedisCache<V> {
     /**
      * returns all exist keys in [space].
      */
-    fun allKeys(limit: Int = 1000, pattern: String = "") =
-            redis.scan(ScanArgs().limit(limit.toLong()).match("$space:$pattern*")).keys.map {
+    fun allKeys(pattern: String = "", limit: Int = 1000) =
+            redis.scan(ScanArgs().match("$space:$pattern*").limit(limit.toLong())).keys.map {
                 String(it).substringAfter("$space:$pattern")
             }
 

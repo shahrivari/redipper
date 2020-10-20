@@ -4,8 +4,6 @@ import com.github.shahrivari.redipper.base.encoding.compression.GzipEncoder
 import com.github.shahrivari.redipper.base.encoding.compression.Lz4Encoder
 import com.github.shahrivari.redipper.base.encoding.encryption.AesEmbeddedEncoder
 import com.github.shahrivari.redipper.base.encoding.encryption.AesEncoder
-import com.github.shahrivari.redipper.base.map.RedisMap
-import com.github.shahrivari.redipper.config.RedisConfig
 import com.github.shahrivari.redipper.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -16,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
 
 @ExtendWith(RedisTest::class, RedisCacheTest::class)
-internal class RedisTableTest : RedisTableUtils {
+internal class RedisTableTest : RedisTableUtils, RedisMapUtils {
 
     @Test
     @Disabled("hlen not support")
@@ -43,9 +41,9 @@ internal class RedisTableTest : RedisTableUtils {
         val lz4Encoder = Lz4Encoder()
 
         val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(encoder = *arrayOf(aes128,
-                                                                                        embeddedEncoder,
-                                                                                        gzipEncoder,
-                                                                                        lz4Encoder))
+                embeddedEncoder,
+                gzipEncoder,
+                lz4Encoder))
 
         val person = createPerson()
 
@@ -80,7 +78,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Disabled("Expire of hash not supported in jedis mock.")
     internal fun `set value with ttl twice`() {
         val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
-                                                                     timeUnit = TimeUnit.SECONDS)
+                timeUnit = TimeUnit.SECONDS)
 
         val person = createPerson()
         val field = "test"
@@ -99,7 +97,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Disabled("hlen not support")
     internal fun `should eliminate null values`() {
         val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
-                                                                     timeUnit = TimeUnit.SECONDS)
+                timeUnit = TimeUnit.SECONDS)
         val person = createPerson()
         val field = "test"
 
@@ -127,7 +125,7 @@ internal class RedisTableTest : RedisTableUtils {
     @Disabled("hlen not support")
     internal fun `should eliminate null values when get all fields`() {
         val redisTable = buildRedisTableTest<RedisCacheUtils.Person>(duration = 40,
-                                                                     timeUnit = TimeUnit.SECONDS)
+                timeUnit = TimeUnit.SECONDS)
         val key = "alaki"
 
         val p1 = createPerson()
@@ -172,12 +170,12 @@ internal class RedisTableTest : RedisTableUtils {
     internal fun `all fields should be delete from cache`() {
         val redisTable = buildRedisTableTest<Int>()
         val fieldValue = mapOf("f1" to 1,
-                               "f2" to 2,
-                               "f3" to 3,
-                               "f5" to null,
-                               "f6" to 6,
-                               "f7" to 7,
-                               "f8" to null)
+                "f2" to 2,
+                "f3" to 3,
+                "f5" to null,
+                "f6" to 6,
+                "f7" to 7,
+                "f8" to null)
 
         redisTable.hmset("key", fieldValue)
 
@@ -213,8 +211,8 @@ internal class RedisTableTest : RedisTableUtils {
             }
         }
 
-        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
-            this.set("al", 1)
+        buildRedisMapTest<Int>("test").apply {
+            set("al", 1)
         }
 
         val list = redisTable.allKeys()
@@ -238,7 +236,7 @@ internal class RedisTableTest : RedisTableUtils {
             }
         }
 
-        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
+        buildRedisMapTest<Int>("test").apply {
             this.set("al", 1)
         }
 
@@ -273,7 +271,7 @@ internal class RedisTableTest : RedisTableUtils {
             hset("key3", "id", 3)
         }
 
-        RedisMap.newBuilder<Int>(RedisConfig(), "test").build().apply {
+        buildRedisMapTest<Int>("test").apply {
             this.set("bib", 1)
         }
 
