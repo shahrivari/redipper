@@ -30,6 +30,12 @@ open class RedisList<V : Serializable> : RedisCache<V> {
             redis.expire(key.prependSpace(), ttlSeconds)
     }
 
+    fun rpush(key: String, value: V) {
+        redis.rpush(key.prependSpace(), serialize(value))
+        if (ttlSeconds > 0)
+            redis.expire(key.prependSpace(), ttlSeconds)
+    }
+
     fun lpop(key: String) = deserialize(redis.lpop(key.prependSpace()))
 
     fun rpop(key: String) = deserialize(redis.rpop(key.prependSpace()))

@@ -32,7 +32,7 @@ Redipper is a simple redis wrapper for Lettuce which makes it easier to use. The
 <dependency>
     <groupId>com.github.shahrivari</groupId>
     <artifactId>redipper</artifactId>
-    <version>v1.26</version>
+    <version>v1.28</version>
 </dependency>
 ```
 
