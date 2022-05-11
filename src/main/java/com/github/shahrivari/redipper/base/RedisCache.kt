@@ -46,7 +46,7 @@ abstract class RedisCache<V : Serializable> : AutoCloseable {
             spaceGroup.clear()
 
             // to clear whole redis
-            RedisMap.newBuilder<Int>(config, "reset", true).build().apply { redis.flushall() }.close()
+            RedisMap.newBuilder<Int>(config, "reset", true).build().use { it.redis.flushall() }
         }
     }
 

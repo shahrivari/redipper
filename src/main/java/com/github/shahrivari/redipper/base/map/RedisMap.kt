@@ -51,10 +51,11 @@ open class RedisMap<V : Serializable> : RedisCache<V> {
         }
     }
 
-    fun set(key: String, value: V?) {
+    fun set(key: String, value: V?, ttl: Long? = null) {
+        val seconds = ttl ?: ttlSeconds
         val bytes = if (value == null) EMPTY_BYTES else serialize(value)
-        if (ttlSeconds > 0)
-            redis.setex(key.prependSpace(), ttlSeconds, bytes)
+        if (seconds > 0)
+            redis.setex(key.prependSpace(), seconds, bytes)
         else
             redis.set(key.prependSpace(), bytes)
     }
